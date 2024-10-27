@@ -12,3 +12,4 @@ python3 -m pip install pandas-ta
 python3 -m pip install backtesting
 python3 -m pip install python-telegram-bot
 python3 -m pip install asyncio
+yes | cp squeeze_pro.py /home/ec2-user/googlecolab/robot/lib64/python3.9/site-packages/pandas_ta/momentum
