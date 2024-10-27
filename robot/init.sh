@@ -1,3 +1,4 @@
+#!/bin/sh
 #sudo yum -y install git
 #git config --global user.email "cscsaba242@live.com"
 #git config --global user.name "Csaba AWS"
