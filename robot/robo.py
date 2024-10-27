@@ -10,7 +10,6 @@ from backtesting.lib import crossover
 from backtesting.test import SMA
 import telegram as tg
 import asyncio
-import ipdb
 import logging
 
 #Start,End,Duration,Exposure Time [%],Equity Final [$],Equity Peak [$],Return [%],
