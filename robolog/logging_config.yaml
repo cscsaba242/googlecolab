@@ -1,0 +1,17 @@
+version: 1
+formatters:
+  detailed: 
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+handlers:
+  timed_file_handler:
+    class: logging.handlers.TimedRotatingFileHandler
+    formatter: detailed
+    filename: '.log'  # A log fájl neve
+    when: 'D'  # Napi forgatás ('S', 'M', 'H', 'D', 'W0'-'W6' is lehet)
+    interval: 1  # Az időintervallum (1 naponta)
+    backupCount: 7  # Legfeljebb 7 régi log fájlt tart meg
+
+root:
+  level: INFO
+  handlers: [timed_file_handler]
