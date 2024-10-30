@@ -34,7 +34,7 @@ payload={};
 headers = {'User-Agent': 'Mozilla/5.0'}
 cols=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
-bot=tg.Bot(token='7919450117:AAFNQ1-RyX-v2_3NGLR5z4YPZYwqQtZbuoc')
+bot=tg.Bot(token='')
 comp=100
 DOC_FILE="./doc.txt"
 IMG_FILE="./image.jpg"
@@ -117,27 +117,27 @@ def main():
   limit=200 if DF.empty else PERIOD_GROUP
   ret = getPrices("linear", "BTCUSDT", limit, cols)
   logger.info(f"get prices: {ret}")
-  #lf = ret[0]
-  #retMessage = ret[1]
+  lf = ret[0]
+  retMessage = ret[1]
 
-  #if DF.empty:
-  #  DF=lf.copy()
-  #else:
-  #  DF = pandas.concat([lf,DF], ignore_index=True)
-  #return retMessage
+  if DF.empty:
+    DF=lf.copy()
+  else:
+    DF = pandas.concat([lf,DF], ignore_index=True)
+  return retMessage
 
 def loop():
   p=0
+  global logger
   global DF
   global chat_id
   global PERIOD
   global PERIODS
   global PERIOD_GROUP
-  #clear_doc()
 
   while p < PERIODS:
     main()
-    #ipdb.set_trace()
+
     #write_doc(f"candles import: {candles_import}, size:{DF.size}")
     #backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
     #backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
