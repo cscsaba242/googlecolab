@@ -21,7 +21,6 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-minsBackMax=1000
 # 10,05 16:23 1728145380000 18:23 1728152580000
 # 10,05 20:22 o:61920.30 h:61961.80 l:61920.30
 # start = datetime.strptime("2024 10 05, 16:23:00", "%Y %m %d, %H:%M:%S").timestamp()
@@ -38,9 +37,12 @@ bot=tg.Bot(token='')
 comp=100
 DOC_FILE="./doc.txt"
 IMG_FILE="./image.jpg"
-PERIOD=5 #period in sec
+BYBIT_MAX_CANDLES = 200
+PERIOD_LENGTH_SEC=5 #period in sec
 PERIODS=2  # periods in PERIOD
 PERIOD_GROUP=1 #period to send message
+DATA_STRUCT_CATEGORY = "linear"
+SYMBOL = "BTCUSDT"
 
 async def send_telegram_image():
 	global bot
@@ -49,15 +51,18 @@ async def send_telegram_image():
 		await bot.send_photo(chat_id=chat_id, photo=photo)
 
 async def send_telegram_doc():
+        global logger
         global bot
         global chat_id
         with open(DOC_FILE, 'rb') as doc:
-                await bot.send_document(chat_id=chat_id, document=doc)
+                await response=bot.send_document(chat_id=chat_id, document=doc)
 
 def get_telegram_info():
-	global token
-	url = f"https://api.telegram.org/bot{token}/getUpdates"
-	response = requests.get(url)
+  global logger
+  global token
+  url = f"https://api.telegram.org/bot{token}/getUpdates"
+  response = requests.get(url)
+  logger.debug(f"{response=}")
 
 def write_doc(text):
 	with open(DOC_FILE, 'a') as file:
@@ -67,10 +72,13 @@ def clear_doc():
   open(DOC_FILE, 'w').close()
 
 class SmaCross(Strategy):
+  global logger
   sma_f = 10
   sma_s = 20
   sma_f_func = None
   sma_s_func = None
+
+  logger.debug(f"SmaCross {sma_f,=}, {sma_s=}")
 
   def init(self):
     close = self.data.Close
@@ -95,27 +103,28 @@ def getPrices(categoryParam, symbolParam, limitParam, colsParam):
   lf=pandas.DataFrame()
   url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category={categoryParam}&symbol={symbolParam}&interval=1&limit={limitParam}"
   resp=requests.request("GET", url, headers=headers, data=payload)
-  print(resp)
+  logger.debug(f"{resp=}")
 
-	#lf=pandas.DataFrame(resp["result"]["list"], columns=colsParam)
-	#lf['Date'] = pandas.to_datetime(lf['Date'], unit='ms')
-	#lf['Open'] = convNum(lf['Open'])
-	#lf['High'] = convNum(lf['High'])
-	#lf['Low'] = convNum(lf['Low'])
-	#lf['Close'] = convNum(lf['Close'])
+  lf=pandas.DataFrame(resp["result"]["list"], columns=colsParam)
+  lf['Date'] = pandas.to_datetime(lf['Date'], unit='ms')
+  lf['Open'] = convNum(lf['Open'])
+  lf['High'] = convNum(lf['High'])
+  lf['Low'] = convNum(lf['Low'])
+  lf['Close'] = convNum(lf['Close'])
 
-	#respCode=resp["retCode"]; respMsg=resp["retMsg"]; respCat=resp["result"]["category"];respSymb=resp["result"]["symbol"]
-	#result = f"request result code: {respCode}, msg: {respMsg}, cat: {respCat}, symb: {respSymb}"
-	#return [lf, result]
-  #return [lf, "test"]
+  logger.debug(f"{resp["retCode"],=}, {resp["retMsg"],=}, {resp["result"]["category"],=}, {resp["result"]["symbol"]=}")
+  return [lf]
 
 def main():
   global DF
   global PERIOD_GROUP
   global logger
+  global BYBIT_MAX_CANDLES
+  global DATA_STRUCT_CATEGORY
+  global SYMBOL
 
-  limit=200 if DF.empty else PERIOD_GROUP
-  ret = getPrices("linear", "BTCUSDT", limit, cols)
+  limit = BYBIT_MAX_CANDLES if DF.empty else PERIOD_GROUP
+  ret = getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit, cols)
   logger.info(f"get prices: {ret}")
   lf = ret[0]
   retMessage = ret[1]
@@ -131,14 +140,13 @@ def loop():
   global logger
   global DF
   global chat_id
-  global PERIOD
+  global PERIOD_LENGTH_SEC
   global PERIODS
   global PERIOD_GROUP
 
   while p < PERIODS:
     main()
-
-    #write_doc(f"candles import: {candles_import}, size:{DF.size}")
+    logger.info(f"DF size: {DF.size=}")
     #backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
     #backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
     #optStrategy = backtestOptimized._strategy
@@ -154,6 +162,8 @@ def loop():
 			#await send_telegram_doc()
       #clear_doc()
     logger.info("period:" + str(p))
-    time.sleep(PERIOD)
+    time.sleep(PERIOD_LENGTH_SEC)
     p+=1
+
+logger.info(f"{PERIOD_LENGTH_SEC,=}, {PERIODS,=}, {PERIOD_GROUP,=}, {DATA_STRUCT_CATEGORY,=}, {SYMBOL=}")
 loop()
