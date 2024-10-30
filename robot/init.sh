@@ -1,5 +1,6 @@
 #!/bin/sh
 #sudo yum -y install git
+#git clone https://github.com/cscsaba242/googlecolab.git
 #git config --global user.email "cscsaba242@live.com"
 #git config --global user.name "Csaba AWS"
 python3 -m venv .

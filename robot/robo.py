@@ -34,7 +34,7 @@ payload={};
 headers = {'User-Agent': 'Mozilla/5.0'}
 cols=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
-bot=tg.Bot(token=token)
+bot=tg.Bot(token='7919450117:AAFNQ1-RyX-v2_3NGLR5z4YPZYwqQtZbuoc')
 comp=100
 DOC_FILE="./doc.txt"
 IMG_FILE="./image.jpg"
