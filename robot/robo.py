@@ -155,8 +155,10 @@ def loop():
     backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
     optStrategy = backtestOptimized._strategy
     logger.info(f"{optStrategy.equity=}, {optStrategy.orders=}, {optStrategy.position=}, {optStrategy.trades=}")
+    logger.info(f"{optStrategy.sma_f=}, {optStrategy.sma_s=}")
     backtest.sma_f = optStrategy.sma_f
     backtest.sma_s = optStrategy.sma_s
+
 
     #if (p % PERIOD_GROUP) == 0:
 			#await send_telegram_doc()
