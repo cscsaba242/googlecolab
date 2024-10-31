@@ -50,14 +50,14 @@ async def send_telegram_image():
 	global bot
 	global CHAT_ID
 	with open('./image.jpg', 'rb') as photo:
-		await bot.send_photo(CHAT_ID=CHAT_ID, photo=photo)
+		await bot.send_photo(chat_id=CHAT_ID, photo=photo)
 
 async def send_telegram_doc():
         global logger
         global bot
         global CHAT_ID
         with open(DOC_FILE, 'rb') as doc:
-                await response=bot.send_document(CHAT_ID=CHAT_ID, document=doc)
+                await response=bot.send_document(chat_id=CHAT_ID, document=doc)
 
 def get_telegram_info():
   global logger
