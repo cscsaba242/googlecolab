@@ -11,6 +11,7 @@ from backtesting.test import SMA
 import telegram as tg
 import asyncio
 import logging
+import logging.config
 import config
 import yaml
 
