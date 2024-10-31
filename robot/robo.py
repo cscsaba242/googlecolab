@@ -105,9 +105,9 @@ def getPrices(categoryParam, symbolParam, limitParam, colsParam):
   lf=pandas.DataFrame()
   url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category={categoryParam}&symbol={symbolParam}&interval=1&limit={limitParam}"
   resp=requests.request("GET", url, headers=headers, data=payload)
-  logger.debug(f"{resp=}")
+  logger.debug(f"{resp.text=}")
 
-  lf=pandas.DataFrame(resp["result"]["list"], columns=colsParam)
+  lf = pandas.DataFrame(resp["result"]["list"], columns=colsParam)
   lf['Date'] = pandas.to_datetime(lf['Date'], unit='ms')
   lf['Open'] = convNum(lf['Open'])
   lf['High'] = convNum(lf['High'])
