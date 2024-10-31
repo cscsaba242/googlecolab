@@ -12,7 +12,7 @@ import telegram as tg
 import asyncio
 import logging
 import logging.config
-import config
+from config import TELEGRAM_TOKEN, CHAT_ID
 import yaml
 
 
@@ -42,7 +42,7 @@ payload={};
 headers = {'User-Agent': 'Mozilla/5.0'}
 cols=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
-bot=tg.Bot(token=config.TELEGRAM_TOKEN)
+bot=tg.Bot(token=TELEGRAM_TOKEN)
 comp=100
 DOC_FILE="./doc.txt"
 IMG_FILE="./image.jpg"
@@ -52,7 +52,7 @@ PERIODS=2  # periods in PERIOD
 PERIOD_GROUP=1 #period to send message
 DATA_STRUCT_CATEGORY = "linear"
 SYMBOL = "BTCUSDT"
-CHAT_ID = config.CHAT_ID
+CHAT_ID = CHAT_ID
 
 async def send_telegram_image():
 	global bot
