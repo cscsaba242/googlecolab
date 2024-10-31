@@ -1,15 +1,15 @@
 import requests
-#from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 import time
-#import os
-#import json
+import os
+import json
 import pandas
-#import pandas_ta as ta
-from backtesting import Strategy
+import pandas_ta as ta
+from backtesting import Strategy, Backtest
 from backtesting.lib import crossover
 from backtesting.test import SMA
 import telegram as tg
-#import asyncio
+import asyncio
 import logging
 import config
 import yaml
@@ -151,16 +151,12 @@ def loop():
   while p < PERIODS:
     main()
     logger.info(f"DF size: {DF.size=}")
-    #backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
-    #backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
-    #optStrategy = backtestOptimized._strategy
-    #write_doc(f"Opt. equity:{optStrategy.equity}\n")
-    #write_doc(f"Opt. orders:{optStrategy.orders}\n")
-    #write_doc(f"Opt. position:{optStrategy.position}\n")
-    #write_doc(f"Opt. trades:{optStrategy.trades}\n")
-    #optStrategy = backtestOptimized._strategy
-    #backtest.sma_f=optStrategy.sma_f
-    #backtest.sma_s=optStrategy.sma_s
+    backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
+    backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
+    optStrategy = backtestOptimized._strategy
+    logger.info(f"{optStrategy.equity=}, {optStrategy.orders=}, {optStrategy.position=}, {optStrategy.trades=}")
+    backtest.sma_f = optStrategy.sma_f
+    backtest.sma_s = optStrategy.sma_s
 
     #if (p % PERIOD_GROUP) == 0:
 			#await send_telegram_doc()
