@@ -12,15 +12,22 @@ import telegram as tg
 #import asyncio
 import logging
 import config
+import yaml
+
+
+# Load YAML configuration
+with open("./logging_config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+# Apply logging configuration
+logging.config.dictConfig(config)
+logger = logging.getLogger(__name__)
 
 #Start,End,Duration,Exposure Time [%],Equity Final [$],Equity Peak [$],Return [%],
 #Buy & Hold Return [%],Return (Ann.) [%],Volatility (Ann.) [%],Sharpe Ratio,Sortino Ratio
 #Calmar Ratio,Max. Drawdown [%],Avg. Drawdown [%],Max. Drawdown Duration,Avg. Drawdown Duration,# Trades
 #Win Rate [%],Best Trade [%],Worst Trade [%],Avg. Trade [%],Max. Trade Duration,Avg. Trade Duration
 #Profit Factor,Expectancy [%],SQN,_strategy,_equity_curve,_trades
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # 10,05 16:23 1728145380000 18:23 1728152580000
 # 10,05 20:22 o:61920.30 h:61961.80 l:61920.30
