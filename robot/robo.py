@@ -57,7 +57,7 @@ async def send_telegram_doc():
         global bot
         global CHAT_ID
         with open(DOC_FILE, 'rb') as doc:
-                await response=bot.send_document(chat_id=CHAT_ID, document=doc)
+                response = await bot.send_document(chat_id=CHAT_ID, document=doc)
 
 def get_telegram_info():
   global logger
