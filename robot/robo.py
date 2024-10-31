@@ -1,15 +1,15 @@
 import requests
-from datetime import datetime, timedelta
+#from datetime import datetime, timedelta
 import time
-import os
-import json
+#import os
+#import json
 import pandas
-import pandas_ta as ta
-from backtesting import Backtest, Strategy
+#import pandas_ta as ta
+from backtesting import Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA
 import telegram as tg
-import asyncio
+#import asyncio
 import logging
 import config
 
