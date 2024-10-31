@@ -107,7 +107,7 @@ def getPrices(categoryParam, symbolParam, limitParam, colsParam):
   resp=requests.request("GET", url, headers=headers, data=payload).json()
 
   lf = pandas.DataFrame(resp["result"]["list"], columns=colsParam)
-  lf['Date'] = pandas.to_datetime(lf['Date'].astype(float), unit='ms')
+  lf['Date'] = pandas.to_datetime(lf['Date'].astype(float))
   lf['Open'] = convNum(lf['Open'])
   lf['High'] = convNum(lf['High'])
   lf['Low'] = convNum(lf['Low'])
