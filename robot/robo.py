@@ -11,6 +11,7 @@ from backtesting.test import SMA
 import telegram as tg
 import asyncio
 import logging
+import config
 
 #Start,End,Duration,Exposure Time [%],Equity Final [$],Equity Peak [$],Return [%],
 #Buy & Hold Return [%],Return (Ann.) [%],Volatility (Ann.) [%],Sharpe Ratio,Sortino Ratio
@@ -33,7 +34,7 @@ payload={};
 headers = {'User-Agent': 'Mozilla/5.0'}
 cols=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
-bot=tg.Bot(token='')
+bot=tg.Bot(token=config.TELEGRAM_TOKEN)
 comp=100
 DOC_FILE="./doc.txt"
 IMG_FILE="./image.jpg"
@@ -43,19 +44,20 @@ PERIODS=2  # periods in PERIOD
 PERIOD_GROUP=1 #period to send message
 DATA_STRUCT_CATEGORY = "linear"
 SYMBOL = "BTCUSDT"
+CHAT_ID = config.CHAT_ID
 
 async def send_telegram_image():
 	global bot
-	global chat_id
+	global CHAT_ID
 	with open('./image.jpg', 'rb') as photo:
-		await bot.send_photo(chat_id=chat_id, photo=photo)
+		await bot.send_photo(CHAT_ID=CHAT_ID, photo=photo)
 
 async def send_telegram_doc():
         global logger
         global bot
-        global chat_id
+        global CHAT_ID
         with open(DOC_FILE, 'rb') as doc:
-                await response=bot.send_document(chat_id=chat_id, document=doc)
+                await response=bot.send_document(CHAT_ID=CHAT_ID, document=doc)
 
 def get_telegram_info():
   global logger
@@ -139,7 +141,7 @@ def loop():
   p=0
   global logger
   global DF
-  global chat_id
+  global CHAT_ID
   global PERIOD_LENGTH_SEC
   global PERIODS
   global PERIOD_GROUP
