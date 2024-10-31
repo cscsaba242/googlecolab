@@ -114,7 +114,7 @@ def getPrices(categoryParam, symbolParam, limitParam, colsParam):
   lf['Low'] = convNum(lf['Low'])
   lf['Close'] = convNum(lf['Close'])
 
-  logger.debug(f"{resp["retCode"],=}, {resp["retMsg"],=}, {resp["result"]["category"],=}, {resp["result"]["symbol"]=}")
+  logger.debug(f"{resp['retCode']=}, {resp['retMsg']=}, {resp['result']['category']=}, {resp['result']['symbol']=}")
   return [lf]
 
 def main():
