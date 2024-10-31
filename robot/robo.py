@@ -114,7 +114,7 @@ def getPrices(categoryParam, symbolParam, limitParam, colsParam):
   lf['Close'] = convNum(lf['Close'])
 
   logger.debug(f"{resp['retCode']=}, {resp['retMsg']=}, {resp['result']['category']=}, {resp['result']['symbol']=}")
-  return [lf]
+  return lf
 
 def main():
   global DF
@@ -125,16 +125,13 @@ def main():
   global SYMBOL
 
   limit = BYBIT_MAX_CANDLES if DF.empty else PERIOD_GROUP
-  ret = getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit, cols)
+  lf = getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit, cols)
   logger.info(f"get prices: {ret}")
-  lf = ret[0]
-  retMessage = ret[1]
 
   if DF.empty:
     DF=lf.copy()
   else:
     DF = pandas.concat([lf,DF], ignore_index=True)
-  return retMessage
 
 def loop():
   p=0
