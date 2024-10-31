@@ -126,7 +126,6 @@ def main():
 
   limit = BYBIT_MAX_CANDLES if DF.empty else PERIOD_GROUP
   lf = getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit, cols)
-  logger.info(f"get prices: {ret}")
 
   if DF.empty:
     DF=lf.copy()
