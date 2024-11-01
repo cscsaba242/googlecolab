@@ -161,9 +161,9 @@ def loop():
     backtest.sma_s = optStrategy.sma_s
 
 
-    #if (p % PERIOD_GROUP) == 0:
-			#await send_telegram_doc()
-      #clear_doc()
+    if (p % PERIOD_GROUP) == 0:
+      await send_telegram_doc()
+      clear_doc()
     logger.info("period:" + str(p))
     time.sleep(PERIOD_LENGTH_SEC)
     p+=1
