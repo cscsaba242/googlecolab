@@ -7,16 +7,16 @@ format='%(asctime)s - %(levelname)s - %(message)s'
 [handlers]
 keys=timed, console
 
-[handlers_timed]
+[handler_timed]
 class=logging.handlers.TimedRotatingFileHandler
 formatter=default
 filename='debug.log'
-level= DEBUG 
+level= DEBUG
 when='D'
 interval=1
 backupCount=7
 
-[handlers_console]
+[handler_console]
 class=logging.StreamHandler
 level=INFO
 formatter=default
