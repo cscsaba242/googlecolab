@@ -15,7 +15,7 @@ import logging.config
 from config import TELEGRAM_TOKEN, CHAT_ID
 import yaml
 
-logging.config.fileConfig('logging_config.json')
+logging.config.fileConfig('logging_config')
 logger = logging.getLogger(__name__)
 
 #Start,End,Duration,Exposure Time [%],Equity Final [$],Equity Peak [$],Return [%],
