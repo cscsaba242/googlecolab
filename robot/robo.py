@@ -163,10 +163,10 @@ async def loop():
 
     if (p % PERIOD_GROUP) == 0:
       await send_telegram_doc()
-      clear_doc()
-    logger.info("period:" + str(p))
+    logger.info(f"period: {p}")
+
     time.sleep(PERIOD_LENGTH_SEC)
     p+=1
 
-logger.info(f"{PERIOD_LENGTH_SEC,=}, {PERIODS,=}, {PERIOD_GROUP,=}, {DATA_STRUCT_CATEGORY,=}, {SYMBOL=}")
+logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
 loop()
