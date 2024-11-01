@@ -10,7 +10,7 @@ keys=timed, console
 [handler_timed]
 class=logging.handlers.TimedRotatingFileHandler
 formatter=default
-args=('robo.log', 'a')
+args=('robo.log', 'midnight', 1, 7)
 level= DEBUG
 when='D'
 interval=1
