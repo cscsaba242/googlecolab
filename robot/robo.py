@@ -38,7 +38,7 @@ cols=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
 bot=tg.Bot(token=TELEGRAM_TOKEN)
 comp=100
-DOC_FILE="./robot.log"
+DOC_FILE="./robo.log"
 IMG_FILE="./image.jpg"
 BYBIT_MAX_CANDLES = 200
 PERIOD_LENGTH_SEC=5 #period in sec
