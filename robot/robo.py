@@ -44,7 +44,7 @@ cols=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
 bot=tg.Bot(token=TELEGRAM_TOKEN)
 comp=100
-DOC_FILE="./doc.txt"
+DOC_FILE="./robot.log"
 IMG_FILE="./image.jpg"
 BYBIT_MAX_CANDLES = 200
 PERIOD_LENGTH_SEC=5 #period in sec
@@ -141,7 +141,7 @@ def main():
     DF = pandas.concat([lf,DF], ignore_index=True)
 
 async def loop():
-  p=0
+  PERIOD=0
   global logger
   global DF
   global CHAT_ID
@@ -149,7 +149,7 @@ async def loop():
   global PERIODS
   global PERIOD_GROUP
 
-  while p < PERIODS:
+  while PERIOD < PERIODS:
     main()
     logger.info(f"DF size: {DF.size=}")
     backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
@@ -160,13 +160,12 @@ async def loop():
     backtest.sma_f = optStrategy.sma_f
     backtest.sma_s = optStrategy.sma_s
 
-
-    if (p % PERIOD_GROUP) == 0:
+    if (PERIOD % PERIOD_GROUP) == 0:
       await send_telegram_doc()
-    logger.info(f"period: {p}")
-
+    logger.info(f"period: {PERIOD=}")
     time.sleep(PERIOD_LENGTH_SEC)
-    p+=1
-    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
+    PERIOD += 1
+
+    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {p=} {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
 
 asyncio.run(loop())
