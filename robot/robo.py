@@ -42,8 +42,8 @@ DOC_FILE="./robo.log"
 IMG_FILE="./image.jpg"
 BYBIT_MAX_CANDLES = 200
 PERIOD_LENGTH_SEC=5 #period in sec
-PERIODS=2  # periods in PERIOD
-PERIOD_GROUP=1 #period to send message
+PERIODS=200  # periods in PERIOD
+PERIOD_GROUP=20 #period to send message
 DATA_STRUCT_CATEGORY = "linear"
 SYMBOL = "BTCUSDT"
 CHAT_ID = CHAT_ID
@@ -145,7 +145,7 @@ async def loop():
 
   while PERIOD < PERIODS:
     main()
-    logger.info(f"DF size: {DF.size=}")
+    logger.info(f"{DF.size=}")
     backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
     backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
     optStrategy = backtestOptimized._strategy
@@ -160,5 +160,5 @@ async def loop():
     time.sleep(PERIOD_LENGTH_SEC)
     PERIOD += 1
 
-    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {PERIOD=} {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
+    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {PERIOD=}, {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
 asyncio.run(loop())
