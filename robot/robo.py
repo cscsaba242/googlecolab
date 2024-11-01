@@ -164,6 +164,6 @@ async def loop():
     time.sleep(PERIOD_LENGTH_SEC)
     PERIOD += 1
 
-    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {p=} {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
+    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {PERIOD=} {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
     logger.handlers[0].flush()
 asyncio.run(loop())
