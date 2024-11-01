@@ -1,3 +1,6 @@
+[loggers]
+keys=root
+
 [formatters]
 keys=default
 
