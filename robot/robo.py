@@ -19,8 +19,6 @@ import yaml
 # Load YAML configuration
 with open("./logging_config.yaml", "r") as file:
     config = yaml.safe_load(file)
-
-# Apply logging configuration
 logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
 
@@ -167,5 +165,5 @@ async def loop():
     PERIOD += 1
 
     logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {p=} {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
-
+    logger.handlers[0].flush()
 asyncio.run(loop())
