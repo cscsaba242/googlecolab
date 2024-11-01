@@ -140,7 +140,7 @@ def main():
   else:
     DF = pandas.concat([lf,DF], ignore_index=True)
 
-def loop():
+async def loop():
   p=0
   global logger
   global DF

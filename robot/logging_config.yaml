@@ -7,8 +7,8 @@ handlers:
   timed_file:
     class: logging.handlers.TimedRotatingFileHandler
     formatter: default
-    filename: 'debug.log'
-    level: DEBUG 
+    filename: 'robot.log'
+    level: INFO 
     when: 'D'
     interval: 1
     backupCount: 7
