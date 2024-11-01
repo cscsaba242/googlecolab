@@ -1,0 +1,26 @@
+[formatters]
+keys=default
+
+[formatter_default]
+format='%(asctime)s - %(levelname)s - %(message)s'
+
+[handlers]
+keys=timed, console
+
+[handlers_timed]
+class=logging.handlers.TimedRotatingFileHandler
+formatter=default
+filename='debug.log'
+level= DEBUG 
+when='D'
+interval=1
+backupCount=7
+
+[handlers_console]
+class=logging.StreamHandler
+level=INFO
+formatter=default
+
+[logger_root]
+level=DEBUG
+handlers=timed,console
