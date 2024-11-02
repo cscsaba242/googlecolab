@@ -32,16 +32,16 @@ logger = logging.getLogger(__name__)
 #{'ok': True, 'result': [{'update_id': 3987255, 'message': {'message_id': 2, 'from':
 #{'id': 5833186787, 'is_bot': False, 'first_name': 'bunnypussylover', 'username': 'bunnypussylover', 'language_code': 'en'},
 #'chat': {'id': 5833186787, 'first_name': 'bunnypussylover', 'username': 'bunnypussylover', 'type': 'private'}, 'date': 1728931474, 'text': 'hi'}}]}
+bot=tg.Bot(token=TELEGRAM_TOKEN)
 payload={};
 headers = {'User-Agent': 'Mozilla/5.0'}
-cols=['Date','Open','High','Low','Close']
+COLS=['Date','Open','High','Low','Close']
 DF=pandas.DataFrame()
-bot=tg.Bot(token=TELEGRAM_TOKEN)
 comp=100
 DOC_FILE="./robo.log"
 IMG_FILE="./image.jpg"
 BYBIT_MAX_CANDLES = 200
-PERIOD_LENGTH_SEC=60 #period in sec
+PERIOD_LENGTH_SEC=5 #period in sec
 PERIODS=200  # periods in PERIOD
 PERIOD_GROUP=20 #period to send message
 DATA_STRUCT_CATEGORY = "linear"
@@ -82,7 +82,7 @@ class SmaCross(Strategy):
   sma_f_func = None
   sma_s_func = None
 
-  logger.debug(f"SmaCross {sma_f,=}, {sma_s=}")
+  logger.info(f"SmaCross {sma_f,=}, {sma_s=}")
 
   def init(self):
     close = self.data.Close
@@ -99,23 +99,23 @@ def convNum(dfParam: pandas.Series):
 	return (pandas.to_numeric(dfParam)*100).astype(int)
 
 
-def getPrices(categoryParam, symbolParam, limitParam, colsParam):
+def getPrices(categoryParam, symbolParam, limitParam):
   global logger
   global headers
   global payload
-
+  global COLS
   lf=pandas.DataFrame()
   url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category={categoryParam}&symbol={symbolParam}&interval=1&limit={limitParam}"
   resp=requests.request("GET", url, headers=headers, data=payload).json()
 
-  lf = pandas.DataFrame(resp["result"]["list"], columns=colsParam)
+  lf = pandas.DataFrame(resp["result"]["list"], columns=COLS)
   lf['Date'] = pandas.to_datetime(lf['Date'].astype(float))
   lf['Open'] = convNum(lf['Open'])
   lf['High'] = convNum(lf['High'])
   lf['Low'] = convNum(lf['Low'])
   lf['Close'] = convNum(lf['Close'])
 
-  logger.debug(f"{resp['retCode']=}, {resp['retMsg']=}, {resp['result']['category']=}, {resp['result']['symbol']=}")
+  logger.info(f"{lf.size=}, {resp['retCode']=}, {resp['retMsg']=}")
   return lf
 
 def main():
@@ -126,8 +126,8 @@ def main():
   global DATA_STRUCT_CATEGORY
   global SYMBOL
 
-  limit = BYBIT_MAX_CANDLES if DF.empty else PERIOD_GROUP
-  lf = getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit, cols)
+  limit = BYBIT_MAX_CANDLES if DF.empty else 1
+  lf = getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit)
 
   if DF.empty:
     DF=lf.copy()
@@ -144,6 +144,7 @@ async def loop():
   global PERIOD_GROUP
 
   while PERIOD < PERIODS:
+    logger.info(f"\n{PERIOD=}")
     main()
     logger.info(f"{DF.size=}")
     backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
@@ -156,9 +157,10 @@ async def loop():
 
     if (PERIOD % PERIOD_GROUP) == 0:
       await send_telegram_doc()
-    logger.info(f"period: {PERIOD=}")
+    
     time.sleep(PERIOD_LENGTH_SEC)
     PERIOD += 1
 
-    logger.info(f"{PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {PERIOD=}, {DATA_STRUCT_CATEGORY=}, {SYMBOL=}")
+logger.info(f"{SYMBOL=}, {PERIOD_LENGTH_SEC=}, {PERIODS=}, {PERIOD_GROUP=}, {DATA_STRUCT_CATEGORY=}")
 asyncio.run(loop())
+
