@@ -7,15 +7,16 @@ handlers:
   timed_file:
     class: logging.handlers.TimedRotatingFileHandler
     formatter: default
-    filename: '()'
     when: 'D'
     interval: 1
     backupCount: 7
+    level: DEBUG
+    filename: 'default.log'
   console:
     class: logging.StreamHandler
     level: INFO
     formatter: default    
 
 root:
-  level: INFO
-  handlers: [console]
+  level: DEBUG
+  handlers: [console, timed_file]
