@@ -1,7 +1,7 @@
 import telegram as tg
 import requests
 
-class Telegram():
+class Messenger():
   bot = None
   chat_id = None
   logger = None
