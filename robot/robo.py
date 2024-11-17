@@ -25,13 +25,6 @@ import asyncio
 #'chat': {'id': 5833186787, 'first_name': 'bunnypussylover', 'username': 'bunnypussylover', 'type': 'private'}, 'date': 1728931474, 'text': 'hi'}}]}
 DOC_FILE="./robo.log"
 IMG_FILE="./image.jpg"
-BYBIT_MAX_CANDLES = 200
-PERIOD_LENGTH_SEC=5 #period in sec
-PERIODS=200  # periods in PERIOD
-PERIOD_GROUP=20 #period to send message
-DATA_STRUCT_CATEGORY = "linear"
-SYMBOL = "BTCUSDT"
-
 
 class Main():
   payload={};
@@ -40,44 +33,39 @@ class Main():
   DF=pandas.DataFrame()
   comp=100
   logger=None
-  SmaCross=None
+  strategy=None
+  MAX_CANDLES = 200
+  PERIOD_LENGTH_SEC=5 #period in sec
+  PERIODS=200  # periods in PERIOD
+  PERIOD_GROUP=20 #period to send message
+  DATA_STRUCT_CATEGORY = "linear"
+  SYMBOL = "BTCUSDT"
 
   def __init__(self, logger, strategy):
-    self.SmaCross
+    self.strategy = strategy
     self.logger
 
   def convNum(self, dfParam: pandas.Series):
     return (pandas.to_numeric(dfParam)*100).astype(int)
 
 
-  def getPrices(self, categoryParam, symbolParam, limitParam):
-    global logger
-    global headers
-    global payload
-    global COLS
+  def getPrices(self, categoryParam, symbolParam, limitParam) -> pandas.DataFrame:
     lf=pandas.DataFrame()
     url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category={categoryParam}&symbol={symbolParam}&interval=1&limit={limitParam}"
-    resp=requests.request("GET", url, headers=headers, data=payload).json()
+    resp=requests.request("GET", url, headers=self.headers, data=self.payload).json()
 
-    lf = pandas.DataFrame(resp["result"]["list"], columns=COLS)
+    lf = pandas.DataFrame(resp["result"]["list"], columns=self.COLS)
     lf['Date'] = pandas.to_datetime(lf['Date'].astype(float))
     lf['Open'] = self.convNum(lf['Open'])
     lf['High'] = self.convNum(lf['High'])
     lf['Low'] = self.convNum(lf['Low'])
     lf['Close'] = self.convNum(lf['Close'])
 
-    logger.info(f"{lf.size=}, {resp['retCode']=}, {resp['retMsg']=}")
+    self.logger.info(f"{lf.size=}, {resp['retCode']=}, {resp['retMsg']=}")
     return lf
 
   def main(self):
-    global DF
-    global PERIOD_GROUP
-    global logger
-    global BYBIT_MAX_CANDLES
-    global DATA_STRUCT_CATEGORY
-    global SYMBOL
-
-    limit = BYBIT_MAX_CANDLES if DF.empty else 1
+    limit = self.MAX_CANDLES if DF.empty else 1
     lf = self.getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit)
 
     if DF.empty:
