@@ -38,7 +38,7 @@ class Main():
   PERIOD_LENGTH_SEC=5 #period in sec
   PERIODS=200  # periods in PERIOD
   PERIOD_GROUP=20 #period to send message
-  DATA_STRUCT_CATEGORY = "linear"
+  #DATA_STRUCT_CATEGORY = "linear"
   SYMBOL = "BTCUSDT"
 
   def __init__(self, logger, strategy):
