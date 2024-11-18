@@ -1,15 +1,23 @@
-from get_prices import GetPrices
+from getprices_abs import GetPrices
+import pandas
 from pandas import DataFrame
+import requests
+from datetime import datetime
 
 class ByBit(GetPrices):
   CATEGORY = "linear"
+  URL = "https://api-testnet.bybit.com"
 
-  async def do(self, interval:str, symbol:str, DT_from: datetime, DT_to:datetime) -> DataFrame:
-    self.logger.info(f"ByBit.do: {symbol=}, {interval=}, {DT_from=}, {DT_to=}")
+  async def do(self, symbol:str, interval:str, start: datetime, end:datetime) -> DataFrame:
+    self.logger.info(f"ByBit.do: {symbol=}, {interval=}, {start=}, {end=}")
+    
+    start_ts = start.timestamp(start)
+    end_ts = end.timestamp(end)
+
     lf=DataFrame()
-    url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category={self.CATEGORY}&symbol={symbol}&interval={interval}&limit={limitParam}&start={start}&end={end}"
+    url = f"{self.URL}/v5/market/mark-price-kline?category={self.CATEGORY}&symbol={symbol}&interval={interval}&start={start}&end={end}"
     resp=requests.request("GET", url, headers=self.headers, data=self.payload).json()
-}
+
     lf = pandas.DataFrame(resp["result"]["list"], columns=self.COLS)
     lf['Date'] = pandas.to_datetime(lf['Date'].astype(float))
     lf['Open'] = self.convNum(lf['Open'])

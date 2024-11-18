@@ -27,8 +27,6 @@ DOC_FILE="./robo.log"
 IMG_FILE="./image.jpg"
 
 class Main():
-  payload={};
-  headers = {'User-Agent': 'Mozilla/5.0'}
   COLS=['Date','Open','High','Low','Close']
   DF=pandas.DataFrame()
   comp=100

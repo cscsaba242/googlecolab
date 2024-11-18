@@ -5,19 +5,18 @@ from collections import namedtuple
 import asyncio
 
 
-DT_from_to_tupple = namedtuple("DTfromto", ["from","to"])
+DTStartEnd = namedtuple("DTStartEnd", ["start","end"])
 
 class GetPrices(ABC):
-  timezone = timezone.utc
+  timezone = 0 # utc
   logger = None
+  payload = {};
+  headers = {'User-Agent': 'Mozilla/5.0'}
 
   def init(self, logger, timezone):
-    self.timezone = timezone 
     self.logger = logger
+    self.timezone = timezone 
 
   @abstractmethod
-  async def do(self, time_frame:str, interval:str, DT_from: datetime, DT_to:datetime) -> DataFrame:
-    pass
-
-  def convertDTime(DTime: datetime) -> DT_from_to_tupple:
+  async def do(self, symbol:str, interval:str, start: datetime, end:datetime) -> DataFrame:
     pass
