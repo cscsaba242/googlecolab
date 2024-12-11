@@ -7,22 +7,9 @@ import pandas
 import pandas_ta as ta
 from backtesting import Strategy, Backtest
 import telegram as tg
+import smacross
 import asyncio
 
-#Start,End,Duration,Exposure Time [%],Equity Final [$],Equity Peak [$],Return [%],
-#Buy & Hold Return [%],Return (Ann.) [%],Volatility (Ann.) [%],Sharpe Ratio,Sortino Ratio
-#Calmar Ratio,Max. Drawdown [%],Avg. Drawdown [%],Max. Drawdown Duration,Avg. Drawdown Duration,# Trades
-#Win Rate [%],Best Trade [%],Worst Trade [%],Avg. Trade [%],Max. Trade Duration,Avg. Trade Duration
-#Profit Factor,Expectancy [%],SQN,_strategy,_equity_curve,_trades
-
-# 10,05 16:23 1728145380000 18:23 1728152580000
-# 10,05 20:22 o:61920.30 h:61961.80 l:61920.30
-# start = datetime.strptime("2024 10 05, 16:23:00", "%Y %m %d, %H:%M:%S").timestamp()
-# start = int(round(start * 1000))
-#getUpdates response:
-#{'ok': True, 'result': [{'update_id': 3987255, 'message': {'message_id': 2, 'from':
-#{'id': 5833186787, 'is_bot': False, 'first_name': 'bunnypussylover', 'username': 'bunnypussylover', 'language_code': 'en'},
-#'chat': {'id': 5833186787, 'first_name': 'bunnypussylover', 'username': 'bunnypussylover', 'type': 'private'}, 'date': 1728931474, 'text': 'hi'}}]}
 DOC_FILE="./robo.log"
 IMG_FILE="./image.jpg"
 
@@ -48,6 +35,7 @@ class Main():
 
 
   def getPrices(self, categoryParam, symbolParam, limitParam) -> pandas.DataFrame:
+    global SY
     lf=pandas.DataFrame()
     url = f"https://api-testnet.bybit.com/v5/market/mark-price-kline?category={categoryParam}&symbol={symbolParam}&interval=1&limit={limitParam}"
     resp=requests.request("GET", url, headers=self.headers, data=self.payload).json()
@@ -64,7 +52,7 @@ class Main():
 
   def main(self):
     limit = self.MAX_CANDLES if DF.empty else 1
-    lf = self.getPrices(DATA_STRUCT_CATEGORY, SYMBOL, limit)
+    lf = self.getPrices("linear", self.SYMBOL, limit)
 
     if DF.empty:
       DF=lf.copy()
@@ -79,12 +67,13 @@ class Main():
     global PERIOD_LENGTH_SEC
     global PERIODS
     global PERIOD_GROUP
+    global COMP
 
     while PERIOD < PERIODS:
       logger.info(f"\n{PERIOD=}")
       self.main()
       logger.info(f"{DF.size=}")
-      backtest = Backtest(DF, SmaCross,cash=10000*comp, commission=.002,exclusive_orders=True)
+      backtest = Backtest(DF, SmaCross,cash=10000 * COMP, commission=.002,exclusive_orders=True)
       backtestOptimized=backtest.optimize(sma_f=[5, 10, 15], sma_s=[10, 20, 40], constraint=lambda p: p.sma_f < p.sma_s)
       optStrategy = backtestOptimized._strategy
       logger.info(f"{optStrategy.equity=}, {optStrategy.orders=}, {optStrategy.position=}, {optStrategy.trades=}")
