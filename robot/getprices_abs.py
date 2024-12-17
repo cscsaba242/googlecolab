@@ -3,27 +3,27 @@ from pandas import DataFrame, DatetimeIndex
 from datetime import datetime, timezone
 from collections import namedtuple
 import asyncio
+import pytz
 
-
-DTStartEnd = namedtuple("DTStartEnd", ["start","end"])
-
-class GetPrices(ABC):
+class Get_Prices_Abstract(ABC):
   timezone = 0 # utc
   logger = None
   payload = {}
   headers = {}
   start_time: datetime
 
-  @abstractmethod
-  async def get_server_time() -> datetime:
-    pass
-
-  async def init(self, logger, timezone):
+  async def init(self, logger, tz):
     self.logger = logger
-    self.timezone = timezone 
-    start_time: datetime = await get_server_time()
-    logger.info(f"{start_time=}")
+    self.timezone = pytz.timezone("Europe/Budapest")
+    self.start_time_utc = pytz.utc(datetime.now())
+    self.start_time_loc = self.timezone.localize(self.start_time_utc)
+    logger.info(f"{self.start_time_utc=} {self.start_time_loc=}")
 
   @abstractmethod
-  async def do(self, symbol:str, interval:str, start: datetime, end:datetime) -> DataFrame:
+  async def request_data(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> DataFrame:
     pass
+
+  def validate_req_data_count(interval_sec: int, start_utc: datetime, end_utc:datetime) -> int:
+    diff_start_end = start_utc - end_utc
+    result = diff_start_end / interval_sec
+    return result 
