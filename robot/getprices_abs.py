@@ -10,17 +10,18 @@ class Get_Prices_Abstract(ABC):
   logger = None
   payload = {}
   headers = {}
-  start_time: datetime
+  start_time_utc: datetime
+  start_time_loc: datetime
 
-  async def init(self, logger, tz):
+  def __init__(self, logger, tz):
     self.logger = logger
-    self.timezone = pytz.timezone("Europe/Budapest")
-    self.start_time_utc = pytz.utc(datetime.now())
-    self.start_time_loc = self.timezone.localize(self.start_time_utc)
+    self.timezone = pytz.timezone(tz)
+    self.start_time_utc = pytz.utc.localize(datetime.now())
+    self.start_time_loc = self.start_time_utc.astimezone(self.timezone)
     logger.info(f"{self.start_time_utc=} {self.start_time_loc=}")
 
   @abstractmethod
-  async def request_data(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> DataFrame:
+  async def request_data(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> dict:
     pass
 
   def validate_req_data_count(interval_sec: int, start_utc: datetime, end_utc:datetime) -> int:
