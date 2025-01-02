@@ -26,11 +26,11 @@ class ByBit(Broker):
     start_utc_ts = str(int(start_utc.timestamp())) + "000"
     end_utc_ts = str(int(end_utc.timestamp())) + "000"
     url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc_ts}&end={end_utc_ts}&limit=5"
-    breakpoint()
     resp=requests.request("GET", url, headers=self.headers, data=self.payload).json()
+    breakpoint()
 
     lf = pandas.DataFrame(resp["result"]["list"], columns=broker_abs.COLS)
-    lf['Date'] = pandas.to_datetime(lf['Date'].astype(float))
+    lf['Date'] = pandas.to_datetime(lf['Date'], unit="ms")
     lf['Open'] = self.convNum(lf['Open'])
     lf['High'] = self.convNum(lf['High'])
     lf['Low'] = self.convNum(lf['Low'])
