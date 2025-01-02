@@ -1,9 +1,6 @@
 
+python -W ignore testscript.py
 ** PLAN **
-
-abstract GetPrices
-    method RequestData
-    method getDataAsTable
     
     
 
