@@ -7,6 +7,7 @@ import asyncio
 import pytz
 from enum import StrEnum
 import pdb
+from typing import Tuple
 
 COLS=['Date','Open','High','Low','Close', 'x', 'y']
 DAY_IN_SEC=86400
@@ -17,11 +18,11 @@ class Symbols(StrEnum):
     ETHUSDQ = "ETHUSDQ"
 
 class Intervals(StrEnum):
-    MIN1 = "1" 
+    MIN1 = "1"
     MIN3 = "3"
-    MIN5 = "5" 
-    MIN15 = "15" 
-    MIN30 = "30" 
+    MIN5 = "5"
+    MIN15 = "15"
+    MIN30 = "30"
 
 class Broker(ABC):
   tz_loc = None
@@ -44,14 +45,32 @@ class Broker(ABC):
   async def request_data(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> dict:
     pass
 
-  def validate_req_data_count(self, start: datetime, end:datetime, interval_sec: int, data: dict) -> int:
+  def interval_in_secs(self, start: datetime, end:datetime, interval_sec: int) -> int:
     diff_end_start:timedelta = end - start
     result = diff_end_start.total_seconds() / interval_sec
     return result
-  
+
+  def rolling_interval(self, start: datetime, end:datetime, page_sec: int):
+    start_ts = int(start.timestamp())
+    end_ts = int(end.timestamp())
+
+    diff = end_ts - start_ts
+    if diff > 0:
+      remainder = diff % page_sec
+      # if dates are too close and diff is less than page_sec
+      result = start_ts
+      while result < end_ts:
+        if(result + page_sec <= end_ts):
+          result = result + page_sec
+          yield result
+        else:
+          result = result + remainder
+          yield result
+
+
   def convNum(self, dfParam: pandas.Series):
     return (pandas.to_numeric(dfParam)).astype(int)
-  
+
   def dtime_str(self, date_time: datetime, long=True):
      if long:
         return date_time.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)

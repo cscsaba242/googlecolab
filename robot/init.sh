@@ -10,6 +10,6 @@ python -m pip install --upgrade pybit
 python -m pip install pandas
 python -m pip install pandas-ta
 python -m pip install backtesting
-python -m pip install python-telegram-bot
+#python -m pip install python-telegram-bot
 python -m pip install asyncio
 yes | cp squeeze_pro.py ./lib64/python3.12/site-packages/pandas_ta/momentum
