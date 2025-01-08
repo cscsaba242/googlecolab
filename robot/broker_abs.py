@@ -16,6 +16,36 @@ HOUR_IN_SEC=3600
 MS=1000
 SEC_IN_MIN=60
 
+class MTime():
+  DATE_TIME_DISPLAY_LONG_FORMAT = "%Y %m %d %H:%M:%S.%f %z"
+  dt: datetime
+  s: str
+  n: int
+  f: str
+  z: timezone
+  
+  def __init__(self, input, tz = timezone.utc):
+    if isinstance(input, datetime):
+      self.dt = input
+      self.f = input.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.n = int(input.timestamp())
+      self.s = str(self.n)
+      self.z = self.dt.tzinfo
+
+    if isinstance(input, str):
+      self.n = str(input)
+      self.dt = datetime.fromtimestamp(self.n, tz)
+      self.f = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.s = str(self.n)
+      self.z = self.dt.tzinfo
+
+    if isinstance(input, int):
+      self.n = input
+      self.dt = datetime.fromtimestamp(self.n, tz)
+      self.f = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.s = str(self.n)
+      self.z = self.dt.tzinfo
+
 class Symbols(StrEnum):
     BTCUSDT = "BTCUSDT"
     ETHUSDQ = "ETHUSDQ"
@@ -35,17 +65,16 @@ class Broker(ABC):
   logger: Logger = None
   payload = {}
   headers = {}
-  start_time_utc: datetime
-  start_time_loc: datetime
-  DATE_TIME_DISPLAY_LONG_FORMAT = "%Y %m %d %H:%M:%S %z"
-  DATE_TIME_DISPLAY_SHORT_FORMAT = "%Y %m %d %H:%M:%S"
+  start_dt_utc: MTime
+  start_time_loc: MTime
 
   def __init__(self, logger: Logger, tz_loc):
     self.logger = logger
     self.tz_loc = tz_loc
-    self.start_time_utc = pytz.utc.localize(datetime.now())
-    self.start_time_loc = self.start_time_utc.astimezone(self.tz_loc)
-    self.logger.info(f"start_utc:{self.dtime_str(self.start_time_utc)} / start_loc:{self.dtime_str(self.start_time_loc)}")
+    now = datetime.now()
+    self.start_dt_utc = MTime(now)
+    self.start_dt_loc = MTime(now, tz_loc)
+    self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
 
   @abstractmethod
   def request_data(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> dict:
@@ -67,11 +96,14 @@ class Broker(ABC):
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks
-    start_date_utc_ms = data[0][0]
-    end_date_utc_ms = data[data_len_min-1][0]
-    if((start_date_utc_ms != (start_utc.timestamp() * MS)) | (end_date_utc_ms != (end_utc.timestamp() * MS))):
-      errMsg = f"Invalid start - end dates in the requested datas {start_date_utc_ms} / {(start_utc.timestamp() * MS)}" 
-      errMsg = errMsg + f"{end_date_utc_ms} / {(end_utc.timestamp() * MS)}"
+    data_start_utc_ms = int(data[0][0])
+    data_end_utc_ms = int(data[data_len_min-1][0])
+    start_utc_ms = int(start_utc.timestamp() * MS)
+    end_utc_ms = int(end_utc.timestamp() * MS)
+
+    if((data_start_utc_ms != (start_utc.timestamp() * MS)) | (data_end_utc_ms != (end_utc.timestamp() * MS))):
+      errMsg = f"Invalid start - end dates in the requested datas {data_start_utc_ms} / {(start_utc.timestamp() * MS)}" 
+      errMsg = errMsg + f"{data_end_utc_ms} / {(end_utc.timestamp() * MS)}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     return data

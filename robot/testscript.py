@@ -2,6 +2,7 @@ import broker_abs
 from bybit import ByBit
 import pandas
 from broker_abs import DAY_IN_SEC, HOUR_IN_SEC
+from broker_abs import MTime
 import logging
 from logging import config
 import yaml
@@ -19,11 +20,11 @@ with open("./robot/logging_config.yaml", "r") as file:
 # init tz
 budapest_tz = pytz.timezone('Europe/Budapest')
 
-start_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 39, 0, 0))
-end_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 42, 0, 0))
+start_dt_loc = MTime(dt.datetime(2024, 12, 30, 1, 39, 0, 0, tzinfo=budapest_tz))
+end_dt_loc = MTime(dt.datetime(2024, 12, 30, 1, 42, 0, 0, 0, tzinfo=budapest_tz))
 
 bybit = ByBit(logger, budapest_tz)
-df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start_loc, end_loc)
+df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start_dt_loc, end_dt_loc)
 
 # python3 -W ignore -m unittest testscript.Test.<testmethod>
 class Test(unittest.TestCase):
