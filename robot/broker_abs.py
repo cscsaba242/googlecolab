@@ -20,12 +20,13 @@ class Symbols(StrEnum):
     BTCUSDT = "BTCUSDT"
     ETHUSDQ = "ETHUSDQ"
 
-class Intervals(StrEnum):
-    MIN1 = "1"
-    MIN3 = "3"
-    MIN5 = "5"
-    MIN15 = "15"
-    MIN30 = "30"
+class Intervals():
+    MIN1 = 1
+    MIN3 = 3
+    MIN5 = 5
+    MIN15 = 15
+    MIN30 = 30
+
 '''
 - date col. must in ms
 '''
@@ -58,18 +59,19 @@ class Broker(ABC):
     data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
     start_ts = int(start_utc.timestamp())
     end_ts = int(end_utc.timestamp())
-    must_len = int((end_ts - start_ts) / interval_sec)
-    l = len(data)
+    must_len_min = int(end_ts - start_ts) / (interval_sec * 60) 
+    data_len_min = len(data)
     # lengths check
-    if(l == 0 or must_len != l):
-      errorMsg = f"Invalid response, length:{l}, must_len: {must_len}, url: {url}"
+    if(data_len_min == 0 or must_len_min + 1 != data_len_min):
+      errorMsg = f"Invalid response, length:{data_len_min}, must_len: {must_len_min}, url: {url}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks
     start_date_utc_ms = data[0][0]
-    end_date_utc_ms = data[len-1][0]
-    if((start_date_utc_ms != (start_utc * MS)) | (end_date_utc_ms != (end_utc * MS))):
-      errorMsg = f"Invalid start - end dates in the requested datas {start_date_utc_ms} / {(start_utc * MS)} | {end_date_utc_ms} / {(end_utc * MS)}"
+    end_date_utc_ms = data[data_len_min-1][0]
+    if((start_date_utc_ms != (start_utc.timestamp() * MS)) | (end_date_utc_ms != (end_utc.timestamp() * MS))):
+      errMsg = f"Invalid start - end dates in the requested datas {start_date_utc_ms} / {(start_utc.timestamp() * MS)}" 
+      errMsg = errMsg + f"{end_date_utc_ms} / {(end_utc.timestamp() * MS)}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     return data

@@ -23,7 +23,7 @@ start_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 39, 0, 0))
 end_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 42, 0, 0))
 
 bybit = ByBit(logger, budapest_tz)
-df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, 60, start_loc, end_loc)
+df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start_loc, end_loc)
 
 # python3 -W ignore -m unittest testscript.Test.<testmethod>
 class Test(unittest.TestCase):

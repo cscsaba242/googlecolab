@@ -29,7 +29,7 @@ class ByBit(Broker):
     
     start_utc_ts = str(int(start_utc.timestamp())) + "000"
     end_utc_ts = str(int(end_utc.timestamp())) + "000"
-    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc_ts}&end={end_utc_ts}&limit=5"
+    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc_ts}&end={end_utc_ts}"
     response=requests.request("GET", url, headers=self.headers, data=self.payload).json()
     
     if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):
