@@ -58,7 +58,7 @@ class Broker(ABC):
     data = self.request_data(symbol, interval_sec, start_utc, end_utc)
     start_ts = int(start_utc.timestamp())
     end_ts = int(end_utc.timestamp())
-    must_len = int(int((end_ts - start_ts) / MS) / interval_sec)
+    must_len = int((end_ts - start_ts) / interval_sec)
     l = len(data)
     # lengths check
     if(l == 0.0 or must_len != l):

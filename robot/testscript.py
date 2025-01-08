@@ -11,7 +11,7 @@ import unittest
 import pdb
 
 # log init
-with open("./logging_config.yaml", "r") as file:
+with open("./robot/logging_config.yaml", "r") as file:
     config = yaml.safe_load(file)
     logging.config.dictConfig(config)
     logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ with open("./logging_config.yaml", "r") as file:
 budapest_tz = pytz.timezone('Europe/Budapest')
 
 start_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 39, 0, 0))
-end_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 40, 0, 0))
+end_loc = budapest_tz.localize(dt.datetime(2024, 12, 30, 1, 42, 0, 0))
 
 bybit = ByBit(logger, budapest_tz)
 df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, 60, start_loc, end_loc)

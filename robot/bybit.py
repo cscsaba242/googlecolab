@@ -15,6 +15,9 @@ class ByBit(Broker):
     super().__init__(logger, tz)
   
   def request_data(self, symbol:str, interval_sec:str, start_loc: datetime, end_loc:datetime) -> dict:
+    RET_CODE = "retCode"
+    RET_MSG = "retMsg"
+
     start_utc = start_loc.astimezone(pytz.utc)
     end_utc = end_loc.astimezone(pytz.utc)
     
@@ -26,8 +29,14 @@ class ByBit(Broker):
     end_utc_ts = str(int(end_utc.timestamp())) + "000"
     url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc_ts}&end={end_utc_ts}&limit=5"
     result=requests.request("GET", url, headers=self.headers, data=self.payload).json()
-
-    lf=DataFrame()
+    
+    if(result['retCode'] != 0 or result['retMsg'] != 'Ok' ):
+      errMsg = f"Resquest error {result[RET_CODE], result[RET_MSG]}"
+      self.logger.error(errMsg)
+      raise Exception (errMsg)
+    
+    self.logger.info(f"ByBit.request_data: {result['retCode']=}, {result['retMsg']=}")
+    #lf=DataFrame()
     #lf = pandas.DataFrame(resp["result"]["list"], columns=broker_abs.COLS)
     #lf['Date'] = pandas.to_datetime(lf['Date'], unit="ms")
     #lf['Open'] = self.convNum(lf['Open'])
@@ -35,5 +44,4 @@ class ByBit(Broker):
     #lf['Low'] = self.convNum(lf['Low'])
     #lf['Close'] = self.convNum(lf['Close'])
 
-    self.logger.info(f"ByBit.request_data: {result['retCode']=}, {result['retMsg']=}")
-    return result
+    return result['result']['data']
