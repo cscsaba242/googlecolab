@@ -55,17 +55,17 @@ class Broker(ABC):
     reises: 
       - Invalid length of requested data.
     '''
-    data = self.request_data(symbol, interval_sec, start_utc, end_utc)
+    data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
     start_ts = int(start_utc.timestamp())
     end_ts = int(end_utc.timestamp())
     must_len = int((end_ts - start_ts) / interval_sec)
     l = len(data)
     # lengths check
-    if(l == 0.0 or must_len != l):
-      errorMsg = f"Invalid length ({l}) of requested data({must_len}), interval_sec: {interval_sec}"
+    if(l == 0 or must_len != l):
+      errorMsg = f"Invalid response, length:{l}, must_len: {must_len}, url: {url}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
-    # dates checks
+    # date checks
     start_date_utc_ms = data[0][0]
     end_date_utc_ms = data[len-1][0]
     if((start_date_utc_ms != (start_utc * MS)) | (end_date_utc_ms != (end_utc * MS))):

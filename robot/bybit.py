@@ -15,8 +15,10 @@ class ByBit(Broker):
     super().__init__(logger, tz)
   
   def request_data(self, symbol:str, interval_sec:str, start_loc: datetime, end_loc:datetime) -> dict:
-    RET_CODE = "retCode"
-    RET_MSG = "retMsg"
+    RESP_CODE = "retCode"
+    RESP_MSG = "retMsg"
+    RESP_SYM = "symbol"
+    RESP_RES = "result"
 
     start_utc = start_loc.astimezone(pytz.utc)
     end_utc = end_loc.astimezone(pytz.utc)
@@ -28,14 +30,14 @@ class ByBit(Broker):
     start_utc_ts = str(int(start_utc.timestamp())) + "000"
     end_utc_ts = str(int(end_utc.timestamp())) + "000"
     url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc_ts}&end={end_utc_ts}&limit=5"
-    result=requests.request("GET", url, headers=self.headers, data=self.payload).json()
+    response=requests.request("GET", url, headers=self.headers, data=self.payload).json()
     
-    if(result['retCode'] != 0 or result['retMsg'] != 'Ok' ):
-      errMsg = f"Resquest error {result[RET_CODE], result[RET_MSG]}"
+    if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):
+      errMsg = f"Resquest error {response[RESP_CODE]}, {response[RESP_MSG]}, {response[RESP_RES][RESP_SYM]}"
       self.logger.error(errMsg)
       raise Exception (errMsg)
     
-    self.logger.info(f"ByBit.request_data: {result['retCode']=}, {result['retMsg']=}")
+    self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
     #lf=DataFrame()
     #lf = pandas.DataFrame(resp["result"]["list"], columns=broker_abs.COLS)
     #lf['Date'] = pandas.to_datetime(lf['Date'], unit="ms")
@@ -44,4 +46,4 @@ class ByBit(Broker):
     #lf['Low'] = self.convNum(lf['Low'])
     #lf['Close'] = self.convNum(lf['Close'])
 
-    return result['result']['data']
+    return response[RESP_RES]['list'], url
