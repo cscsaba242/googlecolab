@@ -9,6 +9,7 @@ from enum import StrEnum
 import pdb
 from typing import Tuple
 from logging import Logger
+import re
 
 COLS=['Date','Open','High','Low','Close', 'x', 'y']
 DAY_IN_SEC=86400
@@ -18,33 +19,71 @@ SEC_IN_MIN=60
 
 class MTime():
   DATE_TIME_DISPLAY_LONG_FORMAT = "%Y %m %d %H:%M:%S.%f %z"
+  FLOAT_TS = r"[0-9]{10}\.[0-9]{3}"
+  INT_TS = r"[0-9]{13}"
+
   dt: datetime
   s: str
-  n: int
-  f: str
+  '''
+  datetime in string format
+  '''
+  sf: str
+  '''
+  timestamp is an float as string
+  '''
+  si: str
+  '''
+  timestamp is an int as string
+  '''
+  f: float
+  '''
+  timestamp in float 
+  '''
+  i: int
+  '''
+  timestamp in int 
+  '''
   z: timezone
   
   def __init__(self, input, tz = timezone.utc):
     if isinstance(input, datetime):
       self.dt = input
-      self.f = input.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-      self.n = int(input.timestamp())
-      self.s = str(self.n)
-      self.z = self.dt.tzinfo
-
-    if isinstance(input, str):
-      self.n = str(input)
-      self.dt = datetime.fromtimestamp(self.n, tz)
-      self.f = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-      self.s = str(self.n)
-      self.z = self.dt.tzinfo
-
-    if isinstance(input, int):
-      self.n = input
-      self.dt = datetime.fromtimestamp(self.n, tz)
-      self.f = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-      self.s = str(self.n)
-      self.z = self.dt.tzinfo
+      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.f = self.dt.timestamp() 
+      self.i = int(self.f * MS)
+      self.sf = str(self.f)
+      self.si = str(self.i)
+      self.tz = self.dt.tzinfo
+    elif isinstance(input, str):
+      input = str(input)
+      if re.match(self.FLOAT_TS, input):
+        self.sf = input
+        self.f = float(self.sf)
+        self.i = self.f * MS
+        self.dt = datetime.fromtimestamp(self.f)
+        self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+        self.tz = self.dt.tzinfo
+      elif re.match(self.INT_TS, input):
+        self.si = input
+        self.i = int(self.si)
+        self.f = self.i / MS
+        self.sf = str(self.f)
+        self.dt = datetime.fromtimestamp(self.f)
+        self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+        self.tz = self.dt.tzinfo
+      else:
+        raise Exception(f"Invalid string datetime format: {input}")  
+    elif isinstance(input, float):
+      self.f = input
+      self.i = self.f * MS
+      self.dt = datetime.fromtimestamp(self.f, tz)
+      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.fs = str(self.f)
+      self.fi = str(self.i)
+      self.tz = self.dt.tzinfo
+    else:
+      raise Exception(f"Invalid type of input: {input}")
+  
 
 class Symbols(StrEnum):
     BTCUSDT = "BTCUSDT"
@@ -77,18 +116,16 @@ class Broker(ABC):
     self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
 
   @abstractmethod
-  def request_data(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> dict:
+  def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
     pass
 
-  def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: datetime, end_utc:datetime) -> dict:
+  def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
     '''
     reises: 
       - Invalid length of requested data.
     '''
     data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
-    start_ts = int(start_utc.timestamp())
-    end_ts = int(end_utc.timestamp())
-    must_len_min = int(end_ts - start_ts) / (interval_sec * 60) 
+    must_len_min = int((end_utc.i - start_utc.i) / (interval_sec * 60 * MS))  
     data_len_min = len(data)
     # lengths check
     if(data_len_min == 0 or must_len_min + 1 != data_len_min):
@@ -96,34 +133,24 @@ class Broker(ABC):
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks
-    data_start_utc_ms = int(data[0][0])
-    data_end_utc_ms = int(data[data_len_min-1][0])
-    start_utc_ms = int(start_utc.timestamp() * MS)
-    end_utc_ms = int(end_utc.timestamp() * MS)
+    data_start_utc = MTime(str(data[0][0]))
+    data_end_utc = MTime(str(data[data_len_min-1][0]))
 
-    if((data_start_utc_ms != (start_utc.timestamp() * MS)) | (data_end_utc_ms != (end_utc.timestamp() * MS))):
-      errMsg = f"Invalid start - end dates in the requested datas {data_start_utc_ms} / {(start_utc.timestamp() * MS)}" 
-      errMsg = errMsg + f"{data_end_utc_ms} / {(end_utc.timestamp() * MS)}"
-      self.logger.error(errorMsg)
-      raise Exception(errorMsg)
+    if((data_start_utc.i != start_utc.i) | (data_end_utc.i != end_utc.i)):
+      errMsg = f"Invalid start - end dates in the requested datas {data_start_utc.s} / {start_utc.s}" 
+      errMsg = errMsg + f"{data_end_utc.s} / {end_utc.s}"
+      self.logger.error(errMsg)
+      raise Exception(errMsg)
     return data
     
-  def interval_in_secs(self, start: datetime, end:datetime, interval_sec: int) -> int:
-    diff_end_start:timedelta = end - start
-    result = diff_end_start.total_seconds() / interval_sec
-    return result
-
-  def rolling_interval(self, start: datetime, end:datetime, page_sec: int):
-    start_ts = int(start.timestamp())
-    end_ts = int(end.timestamp())
-
-    diff = end_ts - start_ts
+  def rolling_interval(self, start: MTime, end:MTime, page_sec: int):
+    diff = end.i - start.i
     if diff > 0:
       remainder = diff % page_sec
       # if dates are too close and diff is less than page_sec
-      result = start_ts
-      while result < end_ts:
-        if(result + page_sec <= end_ts):
+      result = start.i
+      while result < end.i:
+        if(result + page_sec <= end.i):
           result = result + page_sec
           yield result
         else:

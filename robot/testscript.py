@@ -21,29 +21,18 @@ with open("./robot/logging_config.yaml", "r") as file:
 budapest_tz = pytz.timezone('Europe/Budapest')
 
 start_dt_loc = MTime(dt.datetime(2024, 12, 30, 1, 39, 0, 0, tzinfo=budapest_tz))
-end_dt_loc = MTime(dt.datetime(2024, 12, 30, 1, 42, 0, 0, 0, tzinfo=budapest_tz))
+end_dt_loc = MTime(dt.datetime(2024, 12, 30, 1, 42, 0, 0, tzinfo=budapest_tz))
 
 bybit = ByBit(logger, budapest_tz)
 df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start_dt_loc, end_dt_loc)
 
 # python3 -W ignore -m unittest testscript.Test.<testmethod>
 class Test(unittest.TestCase):
-    def test_vrq(self):
-        start = dt.datetime(2024, 12, 30, 1, 0, 0, 0)
-        end = dt.datetime(2024, 12, 30, 2, 0, 0, 0)
-        result = bybit.validate_req_data_count(start, end, HOUR_IN_SEC)
-        self.assertEqual(result, 1)
-        start = dt.datetime(2024, 12, 30, 0, 0, 0, 0)
-        end = dt.datetime(2024, 12, 31, 0, 0, 0, 0)
-        result = bybit.validate_req_data_count(start, end, DAY_IN_SEC)
-        self.assertEqual(result, 1)
-
     def test_rolling_interval(self):
         # 1 min diff
-        start = dt.datetime(2024, 12, 30, 1, 1, 0, 0)
-        end = dt.datetime(2024, 12, 30, 2, 2, 0, 0)
+        start = MTime(dt.datetime(2024, 12, 30, 1, 1, 0, 0))
+        end = MTime(dt.datetime(2024, 12, 30, 2, 2, 0, 0))
         result = bybit.rolling_interval(start, end, 88)
-        print(result)
         self.assertEqual(result, 60)
 
 

@@ -1,5 +1,5 @@
 import broker_abs
-from broker_abs import Broker
+from broker_abs import Broker, MTime
 import pandas
 from pandas import DataFrame
 import requests
@@ -14,22 +14,20 @@ class ByBit(Broker):
   def __init__(self, logger, tz):
     super().__init__(logger, tz)
   
-  def request_data(self, symbol:str, interval_sec:str, start_loc: datetime, end_loc:datetime) -> dict:
+  def request_data(self, symbol:str, interval_sec:str, start_loc: MTime, end_loc:MTime) -> dict:
     RESP_CODE = "retCode"
     RESP_MSG = "retMsg"
     RESP_SYM = "symbol"
     RESP_RES = "result"
 
-    start_utc = start_loc.astimezone(pytz.utc)
-    end_utc = end_loc.astimezone(pytz.utc)
+    start_utc = MTime(start_loc.dt)
+    end_utc = MTime(end_loc.dt)
     
     self.logger.info(f"{symbol=}, {interval_sec=}")
-    self.logger.info(f"start_loc:{self.dtime_str(start_loc)} / end_loc:{self.dtime_str(end_loc)}") 
-    self.logger.info(f"start_utc:{self.dtime_str(start_utc)} / end_utc:{self.dtime_str(end_utc)}")
+    self.logger.info(f"start_loc:{start_loc.s} / end_loc:{end_loc.s}") 
+    self.logger.info(f"start_utc:{start_utc.s} / end_utc:{end_utc.s}")
     
-    start_utc_ts = str(int(start_utc.timestamp())) + "000"
-    end_utc_ts = str(int(end_utc.timestamp())) + "000"
-    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc_ts}&end={end_utc_ts}"
+    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc.si}&end={end_utc.si}"
     response=requests.request("GET", url, headers=self.headers, data=self.payload).json()
     
     if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):
@@ -38,6 +36,8 @@ class ByBit(Broker):
       raise Exception (errMsg)
     
     self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
+    return response[RESP_RES]['list'], url
+  
     #lf=DataFrame()
     #lf = pandas.DataFrame(resp["result"]["list"], columns=broker_abs.COLS)
     #lf['Date'] = pandas.to_datetime(lf['Date'], unit="ms")
@@ -45,5 +45,3 @@ class ByBit(Broker):
     #lf['High'] = self.convNum(lf['High'])
     #lf['Low'] = self.convNum(lf['Low'])
     #lf['Close'] = self.convNum(lf['Close'])
-
-    return response[RESP_RES]['list'], url
