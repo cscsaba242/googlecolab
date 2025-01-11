@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
-import pandas
-from pandas import DataFrame, DatetimeIndex
+#import pandas
+#from pandas import DataFrame, DatetimeIndex
 from datetime import datetime, timezone, timedelta
 from collections import namedtuple
-import asyncio
 import pytz
 from enum import StrEnum
-import pdb
 from typing import Tuple
 from logging import Logger
 import re
+import pdb
+from sqlalchemy import create_engine
 
 COLS=['Date','Open','High','Low','Close', 'x', 'y']
 DAY_IN_SEC=86400
@@ -45,9 +45,9 @@ class MTime():
   '''
   z: timezone
   
-  def __init__(self, input, tz = timezone.utc):
+  def __init__(self, input, tz = pytz.utc):
     if isinstance(input, datetime):
-      self.dt = input
+      self.dt = tz.localize(input) if input.tzinfo is None else input
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.f = self.dt.timestamp() 
       self.i = int(self.f * MS)
@@ -60,7 +60,7 @@ class MTime():
         self.sf = input
         self.f = float(self.sf)
         self.i = self.f * MS
-        self.dt = datetime.fromtimestamp(self.f)
+        self.dt = tz.localize(datetime.fromtimestamp(self.f))
         self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
         self.tz = self.dt.tzinfo
       elif re.match(self.INT_TS, input):
@@ -68,7 +68,7 @@ class MTime():
         self.i = int(self.si)
         self.f = self.i / MS
         self.sf = str(self.f)
-        self.dt = datetime.fromtimestamp(self.f)
+        self.dt = tz.localize(datetime.fromtimestamp(self.f))
         self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
         self.tz = self.dt.tzinfo
       else:
@@ -76,7 +76,7 @@ class MTime():
     elif isinstance(input, float):
       self.f = input
       self.i = self.f * MS
-      self.dt = datetime.fromtimestamp(self.f, tz)
+      self.dt = tz.localize(datetime.fromtimestamp(self.f, tz))
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.fs = str(self.f)
       self.fi = str(self.i)
@@ -122,21 +122,22 @@ class Broker(ABC):
   def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
     '''
     reises: 
-      - Invalid length of requested data.
+      - Invalid length
+      - Invalid start - end date
     '''
     data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
     must_len_min = int((end_utc.i - start_utc.i) / (interval_sec * 60 * MS))  
     data_len_min = len(data)
     # lengths check
     if(data_len_min == 0 or must_len_min + 1 != data_len_min):
-      errorMsg = f"Invalid response, length:{data_len_min}, must_len: {must_len_min}, url: {url}"
+      errorMsg = f"Invalid length, length:{data_len_min}, must_len: {must_len_min}, url: {url}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks
     data_start_utc = MTime(str(data[0][0]))
     data_end_utc = MTime(str(data[data_len_min-1][0]))
 
-    if((data_start_utc.i != start_utc.i) | (data_end_utc.i != end_utc.i)):
+    if((data_start_utc.i != end_utc.i) | (data_end_utc.i != start_utc.i)):
       errMsg = f"Invalid start - end dates in the requested datas {data_start_utc.s} / {start_utc.s}" 
       errMsg = errMsg + f"{data_end_utc.s} / {end_utc.s}"
       self.logger.error(errMsg)
@@ -146,22 +147,15 @@ class Broker(ABC):
   def rolling_interval(self, start: MTime, end:MTime, page_sec: int):
     diff = end.i - start.i
     if diff > 0:
-      remainder = diff % page_sec
+      page_ms = page_sec * MS
+      remainder = diff % page_ms
       # if dates are too close and diff is less than page_sec
       result = start.i
+      yield result
       while result < end.i:
-        if(result + page_sec <= end.i):
-          result = result + page_sec
+        if(result + page_ms <= end.i):
+          result = result + page_ms
           yield result
         else:
           result = result + remainder
           yield result
-
-  def convNum(self, dfParam: pandas.Series):
-    return (pandas.to_numeric(dfParam)).astype(int)
-
-  def dtime_str(self, date_time: datetime, long=True):
-     if long:
-        return date_time.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-     else:
-        return date_time.strftime(self.DATE_TIME_DISPLAY_SHORT_FORMAT)
