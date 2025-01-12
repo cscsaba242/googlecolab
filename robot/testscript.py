@@ -1,6 +1,5 @@
 import broker_abs
 from bybit import ByBit
-#import pandas
 from broker_abs import DAY_IN_SEC, HOUR_IN_SEC
 from broker_abs import MTime
 import logging
@@ -11,7 +10,6 @@ from datetime import timedelta
 import pytz
 import unittest
 import pdb
-import asyncio
 
 DAY_IN_SEC = 86400
 WEEK_IN_SEC = 604800
@@ -35,9 +33,9 @@ page_len = 60*10
 gen_pages = bybit.rolling_interval(start_dt_loc, end_dt_loc, page_len)
 pages = list(gen_pages)
 for page in pages: 
-    start = MTime(page, budapest_tz)
-    end = MTime(page + (page_len - 60), budapest_tz)
-    df = asyncio.run(bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start, end))
+    start = MTime(page)
+    end = MTime(page + (page_len - 60))
+    df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start, end)
     print(start.s)
 
 # python3 -W ignore -m unittest testscript.Test.<testmethod>

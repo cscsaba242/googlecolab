@@ -1,15 +1,13 @@
 from abc import ABC, abstractmethod
-#import pandas
-#from pandas import DataFrame, DatetimeIndex
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from collections import namedtuple
 import pytz
 from enum import StrEnum
-from typing import Tuple
 from logging import Logger
 import re
 import pdb
-from sqlalchemy import create_engine
+from typing import Tuple
+import asyncio
 
 COLS=['Date','Open','High','Low','Close', 'x', 'y']
 DAY_IN_SEC=86400
@@ -129,21 +127,21 @@ class Broker(ABC):
     self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
 
   @abstractmethod
-  def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
+  async def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
     pass
 
-  async def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
+  def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    data = await self.request_data(symbol, interval_sec, start_utc, end_utc)
+    data, url = asyncio.run(self.request_data(symbol, interval_sec, start_utc, end_utc))
     must_len_min = int((end_utc.i - start_utc.i) / (interval_sec * 60 * MS))  
     data_len_min = len(data)
     # lengths check
     if(data_len_min == 0 or must_len_min + 1 != data_len_min):
-      errorMsg = f"Invalid length, length:{data_len_min}, must_len: {must_len_min}"
+      errorMsg = f"Invalid length, length:{data_len_min}, must_len: {must_len_min}, url:{url}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks
@@ -155,7 +153,7 @@ class Broker(ABC):
       errMsg = errMsg + f"{data_end_utc.s} / {end_utc.s}"
       self.logger.error(errMsg)
       raise Exception(errMsg)
-    return data
+    return data, url
     
   def rolling_interval(self, start: MTime, end:MTime, page_sec: int):
     diff = end.i - start.i
