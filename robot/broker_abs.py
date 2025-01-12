@@ -47,7 +47,8 @@ class MTime():
   
   def __init__(self, input, tz = pytz.utc):
     if isinstance(input, datetime):
-      self.dt = tz.localize(input) if input.tzinfo is None else input
+      _ = input
+      self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.f = self.dt.timestamp() 
       self.i = int(self.f * MS)
@@ -60,7 +61,8 @@ class MTime():
         self.sf = input
         self.f = float(self.sf)
         self.i = self.f * MS
-        self.dt = tz.localize(datetime.fromtimestamp(self.f))
+        _ = datetime.fromtimestamp(self.f)
+        self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
         self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
         self.tz = self.dt.tzinfo
       elif re.match(self.INT_TS, input):
@@ -68,7 +70,8 @@ class MTime():
         self.i = int(self.si)
         self.f = self.i / MS
         self.sf = str(self.f)
-        self.dt = tz.localize(datetime.fromtimestamp(self.f))
+        _ = datetime.fromtimestamp(self.f)
+        self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
         self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
         self.tz = self.dt.tzinfo
       else:
@@ -76,7 +79,17 @@ class MTime():
     elif isinstance(input, float):
       self.f = input
       self.i = self.f * MS
-      self.dt = tz.localize(datetime.fromtimestamp(self.f, tz))
+      _ = datetime.fromtimestamp(self.f)
+      self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
+      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.fs = str(self.f)
+      self.fi = str(self.i)
+      self.tz = self.dt.tzinfo
+    elif isinstance(input, int):
+      self.i = input
+      self.f = self.i / MS
+      _ = datetime.fromtimestamp(self.f)
+      self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.fs = str(self.f)
       self.fi = str(self.i)
@@ -119,18 +132,18 @@ class Broker(ABC):
   def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
     pass
 
-  def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
+  async def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> dict:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
+    data = await self.request_data(symbol, interval_sec, start_utc, end_utc)
     must_len_min = int((end_utc.i - start_utc.i) / (interval_sec * 60 * MS))  
     data_len_min = len(data)
     # lengths check
     if(data_len_min == 0 or must_len_min + 1 != data_len_min):
-      errorMsg = f"Invalid length, length:{data_len_min}, must_len: {must_len_min}, url: {url}"
+      errorMsg = f"Invalid length, length:{data_len_min}, must_len: {must_len_min}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks

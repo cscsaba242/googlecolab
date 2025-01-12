@@ -4,6 +4,6 @@
 python -m venv 
 source ./bin/activate
 python -m ensurepip --upgrade
-python -m pip install pybit pandas pandas-ta pyyaml requests pytz backtesting sqlalchemy
+python -m pip install pybit pandas pandas-ta pyyaml requests pytz backtesting sqlalchemy asyncio
 
 #yes | cp squeeze_pro.py ./lib64/python3.12/site-packages/pandas_ta/momentum
