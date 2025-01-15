@@ -127,7 +127,7 @@ class Broker(ABC):
     self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
 
   @abstractmethod
-  async def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
+  def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
     pass
 
   def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
@@ -136,7 +136,7 @@ class Broker(ABC):
       - Invalid length
       - Invalid start - end date
     '''
-    data, url = asyncio.run(self.request_data(symbol, interval_sec, start_utc, end_utc))
+    data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
     must_len_min = int((end_utc.i - start_utc.i) / (interval_sec * 60 * MS))  
     data_len_min = len(data)
     # lengths check

@@ -10,13 +10,16 @@ from datetime import timedelta
 import pytz
 import unittest
 import pdb
+import pandas as pd
+from pandas import DataFrame
+
 
 DAY_IN_SEC = 86400
 WEEK_IN_SEC = 604800
 MONTH_IN_SEC = 2419200
 
 # log init
-with open("./robot/logging_config.yaml", "r") as file:
+with open("./logging_config.yaml", "r") as file:
     config = yaml.safe_load(file)
     logging.config.dictConfig(config)
     logger = logging.getLogger(__name__)
@@ -24,19 +27,25 @@ with open("./robot/logging_config.yaml", "r") as file:
 # init tz
 budapest_tz = pytz.timezone('Europe/Budapest')
 
-start_dt_loc = MTime(dt.datetime(2025, 1, 12, 19, 20, 0, 0, tzinfo=budapest_tz))
+start_dt_loc = MTime(dt.datetime(2025, 1, 1, 0, 0, 0, 0, tzinfo=budapest_tz))
 end_dt_loc = MTime(dt.datetime.now().astimezone(budapest_tz))
 
 bybit = ByBit(logger, budapest_tz)
 
-page_len = 60*10
+df = DataFrame()
+
+page_len = 9_090
 gen_pages = bybit.rolling_interval(start_dt_loc, end_dt_loc, page_len)
 pages = list(gen_pages)
 for page in pages: 
     start = MTime(page)
-    end = MTime(page + (page_len - 60))
-    df = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start, end)
-    print(start.s)
+    end = MTime(start.i + page - 1)
+    df_page = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start, end)
+    print("page finished")
+    df = pd.concat([df, df_page], ignore_index=True)
+
+print("finished")
+
 
 # python3 -W ignore -m unittest testscript.Test.<testmethod>
 # python -m unittest testscript.Test.test_rolling_interval
