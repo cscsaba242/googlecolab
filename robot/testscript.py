@@ -17,9 +17,10 @@ from pandas import DataFrame
 DAY_IN_SEC = 86400
 WEEK_IN_SEC = 604800
 MONTH_IN_SEC = 2419200
+MS = 1000
 
 # log init
-with open("./logging_config.yaml", "r") as file:
+with open("./robot/logging_config.yaml", "r") as file:
     config = yaml.safe_load(file)
     logging.config.dictConfig(config)
     logger = logging.getLogger(__name__)
@@ -34,12 +35,12 @@ bybit = ByBit(logger, budapest_tz)
 
 df = DataFrame()
 
-page_len = 9_090
-gen_pages = bybit.rolling_interval(start_dt_loc, end_dt_loc, page_len)
+page_len_ms = 9_090
+gen_pages = bybit.rolling_interval(start_dt_loc, end_dt_loc)
 pages = list(gen_pages)
 for page in pages: 
     start = MTime(page)
-    end = MTime(start.i + page - 1)
+    end = MTime(start.i + page_len_ms - 1)
     df_page = bybit.request_data_wrapper(broker_abs.Symbols.BTCUSDT, broker_abs.Intervals.MIN1, start, end)
     print("page finished")
     df = pd.concat([df, df_page], ignore_index=True)

@@ -117,10 +117,23 @@ class Broker(ABC):
   headers = {}
   start_dt_utc: MTime
   start_time_loc: MTime
+  max_data_per_request = 1000
+  smallest_interval_ms = 60_000
+  '''
+  generaly 1 min in ms 60 * 1000
+  '''
+  request_max_time_ms = 0
+  '''
+  max ms per request based on smallest interval e.g 1min * 1000 (max data per request)
+  in ms 60 * 1000 * 1000 = 60_000_000
+  '''
 
-  def __init__(self, logger: Logger, tz_loc):
+  def __init__(self, logger: Logger, tz_loc, max_data_per_request = 0, smallest_interval_ms = 0):
     self.logger = logger
     self.tz_loc = tz_loc
+    self.max_data_per_request = max_data_per_request
+    self.smallest_interval_ms = smallest_interval_ms
+    self.request_max_time_ms = self.max_data_per_request * self.smallest_interval_ms
     now = datetime.now()
     self.start_dt_utc = MTime(now)
     self.start_dt_loc = MTime(now, tz_loc)
@@ -155,17 +168,19 @@ class Broker(ABC):
       raise Exception(errMsg)
     return data, url
     
-  def rolling_interval(self, start: MTime, end:MTime, page_sec: int):
+  def rolling_interval(self, start: MTime, end:MTime, page_ms = None):
+    if page_ms is None:
+      page_ms = self.request_max_time_ms
+
     diff = end.i - start.i
     if diff > 0:
-      page_ms = page_sec * MS
-      remainder = diff % page_ms
+      remainder = diff % self.request_max_time_ms
       # if dates are too close and diff is less than page_sec
       result = start.i
       yield result
       while result < end.i:
         if(result + page_ms <= end.i):
-          result = result + page_ms
+          result = result + self.request_max_time_ms
           yield result
         else:
           result = result + remainder

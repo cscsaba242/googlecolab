@@ -15,7 +15,7 @@ class ByBit(Broker):
   def __init__(self, logger, tz):
     super().__init__(logger, tz)
   
-  def request_data(self, symbol:str, interval_sec:str, start_loc: MTime, end_loc:MTime) -> Tuple[dict, str]:
+  def request_data(self, symbol:str, interval:str, start_loc: MTime, end_loc:MTime) -> Tuple[dict, str]:
     RESP_CODE = "retCode"
     RESP_MSG = "retMsg"
     RESP_SYM = "symbol"
@@ -24,11 +24,11 @@ class ByBit(Broker):
     start_utc = MTime(start_loc.dt)
     end_utc = MTime(end_loc.dt)
     
-    self.logger.info(f"{symbol=}, {interval_sec=}")
+    self.logger.info(f"{symbol=}, {interval=}")
     self.logger.info(f"start_loc:{start_loc.s} / end_loc:{end_loc.s}") 
     self.logger.info(f"start_utc:{start_utc.s} / end_utc:{end_utc.s}")
     
-    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval_sec}&start={start_utc.si}&end={end_utc.si}"
+    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval}&start={start_utc.si}&end={end_utc.si}"
     response = requests.request("GET", url, headers=self.headers, data=self.payload).json()
     
     if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):
