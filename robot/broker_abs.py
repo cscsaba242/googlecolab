@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from collections import namedtuple
 import pytz
-from enum import StrEnum
 from logging import Logger
 import re
 import pdb
@@ -96,10 +95,6 @@ class MTime():
       raise Exception(f"Invalid type of input: {input}")
   
 
-class Symbols(StrEnum):
-    BTCUSDT = "BTCUSDT"
-    ETHUSDQ = "ETHUSDQ"
-
 class Intervals():
     MIN1 = 1
     MIN3 = 3
@@ -168,20 +163,18 @@ class Broker(ABC):
       raise Exception(errMsg)
     return data, url
     
-  def rolling_interval(self, start: MTime, end:MTime, page_ms = None):
-    if page_ms is None:
-      page_ms = self.request_max_time_ms
 
-    diff = end.i - start.i
+def rolling_pages(start: int, end:int, p:int) -> int:
+    if end >= start:
+        raise Exception("Start date must be greate than end time - back in time concept")
+    diff = start - end
     if diff > 0:
-      remainder = diff % self.request_max_time_ms
-      # if dates are too close and diff is less than page_sec
-      result = start.i
-      yield result
-      while result < end.i:
-        if(result + page_ms <= end.i):
-          result = result + self.request_max_time_ms
-          yield result
+        remainder = diff % p
+        result = end
+        yield result
+        while result + p < start:
+            result = result + p
+            yield result
         else:
-          result = result + remainder
-          yield result
+            result = result + remainder
+            yield result
