@@ -93,8 +93,30 @@ class MTime():
       self.tz = self.dt.tzinfo
     else:
       raise Exception(f"Invalid type of input: {input}")
-  
 
+
+class MRange():
+  start: MTime
+  end: MTime
+  interval: int
+  interval_ms: int
+  diff: int
+  quotient: int
+  remainder: int
+
+  def __init__(self, start: MTime, end: MTime, interval:int):
+    if start.i > end.i:
+      raise Exception("start must be < end ")
+    self.start = start
+    self.end = end
+    self.interval = interval
+    self.interval_ms = self.interval * 60 * MS
+    self.diff = end.i - start.i
+    self.diff_interval_remainder = self.diff % self.interval_ms
+    if self.diff_interval_remainder != 0:
+      raise Exception("end - start / interval must be an integer")
+    self.diff_inverval_quotient = self.diff // self.interval_ms
+    
 class Intervals():
     MIN1 = 1
     MIN3 = 3
@@ -123,38 +145,35 @@ class Broker(ABC):
   in ms 60 * 1000 * 1000 = 60_000_000
   '''
 
-  def __init__(self, logger: Logger, tz_loc, max_data_per_request = 0, smallest_interval_ms = 0):
+  def __init__(self, logger: Logger, tz_loc, max_data_per_request = 0):
     self.logger = logger
     self.tz_loc = tz_loc
     self.max_data_per_request = max_data_per_request
-    self.smallest_interval_ms = smallest_interval_ms
-    self.request_max_time_ms = self.max_data_per_request * self.smallest_interval_ms
     now = datetime.now()
     self.start_dt_utc = MTime(now)
     self.start_dt_loc = MTime(now, tz_loc)
     self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
 
   @abstractmethod
-  def request_data(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
+  def request_data(self, symbol:str, interval:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
     pass
 
-  def request_data_wrapper(self, symbol:str, interval_sec:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
+  def request_data_wrapper(self, symbol:str, interval:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    data, url = self.request_data(symbol, interval_sec, start_utc, end_utc)
-    must_len_min = int((end_utc.i - start_utc.i) / (interval_sec * 60 * MS))  
-    data_len_min = len(data)
+    data, url = self.request_data(symbol, interval, start_utc, end_utc) 
+    data_len = len(data)
     # lengths check
-    if(data_len_min == 0 or must_len_min + 1 != data_len_min):
-      errorMsg = f"Invalid length, length:{data_len_min}, must_len: {must_len_min}, url:{url}"
+    if(self.max_data_per_request != data_len):
+      errorMsg = f"Invalid length, length:{data_len}, max data per request: {self.max_data_per_request}, url:{url}"
       self.logger.error(errorMsg)
       raise Exception(errorMsg)
     # date checks
     data_start_utc = MTime(str(data[0][0]))
-    data_end_utc = MTime(str(data[data_len_min-1][0]))
+    data_end_utc = MTime(str(data[self.max_data_per_request-1][0]))
 
     if((data_start_utc.i != end_utc.i) | (data_end_utc.i != start_utc.i)):
       errMsg = f"Invalid start - end dates in the requested datas {data_start_utc.s} / {start_utc.s}" 
@@ -164,17 +183,17 @@ class Broker(ABC):
     return data, url
     
 
-def rolling_pages(start: int, end:int, p:int) -> int:
-    if end >= start:
-        raise Exception("Start date must be greate than end time - back in time concept")
-    diff = start - end
-    if diff > 0:
-        remainder = diff % p
-        result = end
-        yield result
-        while result + p < start:
-            result = result + p
-            yield result
-        else:
-            result = result + remainder
-            yield result
+  def rolling_pages(self, mrange_utc: MRange, p:int):
+      diff = mrange_utc.diff
+      if diff > 0:
+          remainder = diff % p
+          result = mrange_utc.start.i
+          end = mrange_utc.end.i
+
+          yield result
+          while result + p < end:
+              result = result + p
+              yield result
+          else:
+              result = result + remainder
+              yield result
