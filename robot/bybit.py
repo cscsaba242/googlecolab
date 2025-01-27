@@ -25,7 +25,7 @@ class ByBit(Broker):
 
     mrange_utc = MRange(MTime(mrange_loc.start.dt), MTime(mrange_loc.end.dt), mrange_utc.interval_ms)
     
-    self.logger.info(f"{symbol=}, {interval=}")
+    self.logger.info(f"{symbol=}, {mrange_loc.interval=}")
     self.logger.info(f"start_loc:{mrange_loc.start.s} / end_loc:{mrange_loc.end.s}") 
     self.logger.info(f"start_utc:{mrange_utc.start.s} / end_utc:{mrange_utc.end.s}")
     

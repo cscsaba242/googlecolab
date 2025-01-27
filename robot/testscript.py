@@ -26,32 +26,30 @@ with open("./robot/logging_config.yaml", "r") as file:
 
 # INIT LOCAL
 budapest_tz = pytz.timezone('Europe/Budapest')
-start_dt_loc = MTime(dt.datetime(2024, 1, 1, 0, 0, 0, 0, tzinfo=budapest_tz))
 end_dt_loc = MTime(dt.datetime.now().astimezone(budapest_tz))
+start_dt_loc = MTime(end_dt_loc.dt - timedelta(days=1))
 
 # UTC
-start_dt_utc = MTime(start_dt_loc)
-end_dt_utc = MTime(end_dt_loc)
+start_dt_utc = MTime(start_dt_loc.dt)
+end_dt_utc = MTime(end_dt_loc.dt)
 mrange_utc = MRange(start_dt_utc, end_dt_utc, 15)
 
 bybit = ByBit(logger, budapest_tz, 1000)
 
-df = DataFrame()
+pages = bybit.rolling_pages(mrange_utc)
 
-pages = bybit.rolling_pages(end_dt_loc.i, start_dt_loc.i, page_ms)
-page_list = list(pages)
-for page in page_list: 
-    start = MTime(page)
-    end = MTime(start.i + page_ms)
-    df_page = bybit.request_data_wrapper('BTCUSDT', 15, start, end)
-    df = pd.concat([df, df_page], ignore_index=True)
+#page_list = list(pages)
+#df = DataFrame()
+#for page in page_list: 
+#    start = MTime(page)
+#    end = MTime(start.i + page_ms)
+#    df_page = bybit.request_data_wrapper('BTCUSDT', 15, start, end)
+#    df = pd.concat([df, df_page], ignore_index=True)
 
 print("finished")
 
-
 #python3 -W ignore -m unittest testscript.Test.<testmethod>
 #python -m unittest testscript.Test.test_rolling_interval
-
 
 class Test(unittest.TestCase):
     pass

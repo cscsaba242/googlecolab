@@ -34,11 +34,11 @@ class MTime():
   '''
   f: float
   '''
-  timestamp in float 
+  timestamp in float
   '''
   i: int
   '''
-  timestamp in int 
+  timestamp in int
   '''
   z: timezone
   
@@ -98,24 +98,30 @@ class MTime():
 class MRange():
   start: MTime
   end: MTime
+  interval_min: int
+  '''
+  interval in min
+  '''
   interval: int
-  interval_ms: int
   diff: int
   quotient: int
   remainder: int
 
-  def __init__(self, start: MTime, end: MTime, interval:int):
+  def __init__(self, start: MTime, end: MTime, interval_min:int):
     if start.i > end.i:
       raise Exception("start must be < end ")
     self.start = start
     self.end = end
-    self.interval = interval
-    self.interval_ms = self.interval * 60 * MS
+    self.interval_min = interval_min
+    self.interval = self.interval_min * 60 * MS
     self.diff = end.i - start.i
-    self.diff_interval_remainder = self.diff % self.interval_ms
-    if self.diff_interval_remainder != 0:
-      raise Exception("end - start / interval must be an integer")
-    self.diff_inverval_quotient = self.diff // self.interval_ms
+    # if diff < interval -> raise error 'date diff must be greater than interval'
+    if self.diff < self.interval:
+      raise Exception("date diff must be greater than interval")
+    # if diff % self.intervall != 0 -> raise error 'diff must be multiple of the interval'
+    if self.diff % self.interval != 0:
+      raise Exception("diff must be multiple of the interval")
+    
     
 class Intervals():
     MIN1 = 1
@@ -123,7 +129,6 @@ class Intervals():
     MIN5 = 5
     MIN15 = 15
     MIN30 = 30
-
 '''
 - date col. must in ms
 '''
@@ -183,16 +188,23 @@ class Broker(ABC):
     return data, url
     
 
-  def rolling_pages(self, mrange_utc: MRange, p:int):
+  def rolling_pages(self, mrange_utc: MRange):
       diff = mrange_utc.diff
       if diff > 0:
-          remainder = diff % p
+          page = self.max_data_per_request * mrange_utc.interval
+          quotient = diff // page
+
+          if quotient == 0:
+            page = diff
+          else:
+            remainder = diff % page
+
           result = mrange_utc.start.i
           end = mrange_utc.end.i
 
           yield result
-          while result + p < end:
-              result = result + p
+          while result + page < end:
+              result = result + page
               yield result
           else:
               result = result + remainder
