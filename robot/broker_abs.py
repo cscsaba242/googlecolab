@@ -15,10 +15,11 @@ MS=1000
 SEC_IN_MIN=60
 
 class MTime():
-  DATE_TIME_DISPLAY_LONG_FORMAT = "%Y %m %d %H:%M:%S.%f %z"
+  DATE_TIME_DISPLAY_LONG_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
   FLOAT_TS = r"[0-9]{10}\.[0-9]{3}"
   INT_TS = r"[0-9]{13}"
 
+  utc: datetime
   dt: datetime
   s: str
   '''
@@ -93,9 +94,12 @@ class MTime():
       self.tz = self.dt.tzinfo
     else:
       raise Exception(f"Invalid type of input: {input}")
-
+    self.utc = self.dt.astimezone(pytz.utc)
 
 class MRange():
+  '''
+  end > start
+  '''
   start: MTime
   end: MTime
   interval_min: int
@@ -187,25 +191,21 @@ class Broker(ABC):
       raise Exception(errMsg)
     return data, url
     
+'''
+generate pages between dates based on interval(granularity) * max_data_per_request 
+'''
+def rolling_pages(mrange_utc: MRange, max, granularity):
+    diff = mrange_utc.diff
+    if diff > 0:
+        page = max * granularity * 60 * MS
+        remainder = diff % page
 
-  def rolling_pages(self, mrange_utc: MRange):
-      diff = mrange_utc.diff
-      if diff > 0:
-          page = self.max_data_per_request * mrange_utc.interval
-          quotient = diff // page
-
-          if quotient == 0:
-            page = diff
-          else:
-            remainder = diff % page
-
-          result = mrange_utc.start.i
-          end = mrange_utc.end.i
-
+        for result in range(mrange_utc.start.i, mrange_utc.end.i, page):
           yield result
-          while result + page < end:
-              result = result + page
-              yield result
-          else:
-              result = result + remainder
-              yield result
+        
+        if remainder > 0:
+          yield result + remainder
+        else:
+          yield mrange_utc.end.i
+
+

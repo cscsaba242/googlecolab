@@ -1,7 +1,7 @@
 import broker_abs
 from bybit import ByBit
 from broker_abs import DAY_IN_SEC, HOUR_IN_SEC
-from broker_abs import MTime, MRange
+from broker_abs import MTime, MRange, rolling_pages
 import logging
 from logging import config
 import yaml
@@ -32,24 +32,43 @@ start_dt_loc = MTime(end_dt_loc.dt - timedelta(days=1))
 # UTC
 start_dt_utc = MTime(start_dt_loc.dt)
 end_dt_utc = MTime(end_dt_loc.dt)
+
 mrange_utc = MRange(start_dt_utc, end_dt_utc, 15)
-
-bybit = ByBit(logger, budapest_tz, 1000)
-
-pages = bybit.rolling_pages(mrange_utc)
-
-#page_list = list(pages)
-#df = DataFrame()
-#for page in page_list: 
-#    start = MTime(page)
-#    end = MTime(start.i + page_ms)
-#    df_page = bybit.request_data_wrapper('BTCUSDT', 15, start, end)
-#    df = pd.concat([df, df_page], ignore_index=True)
-
 print("finished")
 
-#python3 -W ignore -m unittest testscript.Test.<testmethod>
-#python -m unittest testscript.Test.test_rolling_interval
 
 class Test(unittest.TestCase):
-    pass
+    budapest_tz = pytz.timezone('Europe/Budapest')
+    end_dt_loc: MTime
+    start_dt_loc: MTime
+
+    def testing_rolling_pages1(self):
+        start = dt.datetime.strptime("2024-12-01 02:00:00.000000 +00:00","%Y-%m-%d %H:%M:%S.%f %z")
+        end = start - timedelta(hours=1)
+        startMtime = MTime(start)
+        endMtime = MTime(end) 
+
+        mrange = MRange(endMtime, startMtime, 15)
+        mrange_gen = rolling_pages(mrange, 1, mrange.interval_min)
+        result = list(mrange_gen)
+
+        for r in result:
+            mtime = MTime(r)
+            print(mtime.s)
+
+    def testing_rolling_pages2(self):
+        start = dt.datetime.strptime("2024-12-01 02:00:00.000000 +00:00","%Y-%m-%d %H:%M:%S.%f %z")
+        end = start - timedelta(hours=1)
+        startMtime = MTime(start)
+        endMtime = MTime(end) 
+
+        mrange = MRange(endMtime, startMtime, 1)
+        mrange_gen = rolling_pages(mrange, 10, mrange.interval_min)
+        result = list(mrange_gen)
+
+        for r in result:
+            mtime = MTime(r)
+            print(mtime.s)
+
+t = Test()
+t.testing_rolling_pages2()
