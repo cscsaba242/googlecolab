@@ -13,7 +13,6 @@ class ByBit(Broker):
   URL = "https://api-testnet.bybit.com"
   max_data_per_request = 1000
 
-
   def __init__(self, logger, tz, max):
     super().__init__(logger, tz, max)
   
@@ -23,13 +22,13 @@ class ByBit(Broker):
     RESP_SYM = "symbol"
     RESP_RES = "result"
 
-    mrange_utc = MRange(MTime(mrange_loc.start.dt), MTime(mrange_loc.end.dt), mrange_utc.interval_ms)
+    mrange_utc = MRange(MTime(mrange_loc.start.dt), MTime(mrange_loc.end.dt), mrange_loc.interval_min)
     
     self.logger.info(f"{symbol=}, {mrange_loc.interval=}")
     self.logger.info(f"start_loc:{mrange_loc.start.s} / end_loc:{mrange_loc.end.s}") 
     self.logger.info(f"start_utc:{mrange_utc.start.s} / end_utc:{mrange_utc.end.s}")
     
-    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={interval}&start={mrange_utc.start.si}&end={mrange_utc.end.si}"
+    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={mrange_loc.interval}&start={mrange_utc.start.si}&end={mrange_utc.end.si}"
     response = requests.request("GET", url, headers=self.headers, data=self.payload).json()
     
     if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):

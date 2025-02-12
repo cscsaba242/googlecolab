@@ -112,6 +112,9 @@ class MRange():
   remainder: int
 
   def __init__(self, start: MTime, end: MTime, interval_min:int):
+    '''
+    start .... > end
+    '''
     if start.i > end.i:
       raise Exception("start must be < end ")
     self.start = start
@@ -125,7 +128,7 @@ class MRange():
     # if diff % self.intervall != 0 -> raise error 'diff must be multiple of the interval'
     if self.diff % self.interval != 0:
       raise Exception("diff must be multiple of the interval")
-    
+    self.diff_interval = self.diff / self.interval
     
 class Intervals():
     MIN1 = 1
@@ -164,29 +167,40 @@ class Broker(ABC):
     self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
 
   @abstractmethod
-  def request_data(self, symbol:str, interval:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
+  def request_data(self, symbol:str, range: MRange) -> Tuple[dict, str]:
     pass
 
-  def request_data_wrapper(self, symbol:str, interval:int, start_utc: MTime, end_utc:MTime) -> Tuple[dict, str]:
+  def request_data_wrapper(self, symbol:str, interval_min:int, range: MRange) -> Tuple[dict, str]:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    data, url = self.request_data(symbol, interval, start_utc, end_utc) 
-    data_len = len(data)
-    # lengths check
-    if(self.max_data_per_request != data_len):
-      errorMsg = f"Invalid length, length:{data_len}, max data per request: {self.max_data_per_request}, url:{url}"
-      self.logger.error(errorMsg)
-      raise Exception(errorMsg)
+    pages_gen = rolling_pages(range, self.max_data_per_request, interval_min)
+    pages = list(pages_gen)
+
+    len_pages = len(pages)
+    i = 0
+    while i < len_pages - 1:
+      mrange = MRange(MTime(pages[i]), MTime(pages[i+1]), interval_min)
+      data, url = self.request_data(symbol, mrange)
+      
+      data_len = len(data)
+      # lengths check
+      if(mrange.diff_interval != data_len):
+        errorMsg = f"Invalid length, length:{data_len}, max data per request: {self.max_data_per_request}, url:{url}"
+        self.logger.error(errorMsg)
+        raise Exception(errorMsg)
+
+      i += 1
+
+    
     # date checks
     data_start_utc = MTime(str(data[0][0]))
     data_end_utc = MTime(str(data[self.max_data_per_request-1][0]))
 
-    if((data_start_utc.i != end_utc.i) | (data_end_utc.i != start_utc.i)):
-      errMsg = f"Invalid start - end dates in the requested datas {data_start_utc.s} / {start_utc.s}" 
-      errMsg = errMsg + f"{data_end_utc.s} / {end_utc.s}"
+    if((data_start_utc.i != range.end_utc.i) | (data_end_utc.i != range.start_utc.i)):
+      errMsg = f"Error, query and result start end dates should be the same:  {data_start_utc.s} != {range.start_utc.s} or {data_end_utc.s} != {range.end_utc.s}"
       self.logger.error(errMsg)
       raise Exception(errMsg)
     return data, url
@@ -194,10 +208,14 @@ class Broker(ABC):
 '''
 generate pages between dates based on interval(granularity) * max_data_per_request 
 '''
-def rolling_pages(mrange_utc: MRange, max, granularity):
+def rolling_pages(mrange_utc: MRange, max, interval_min):
     diff = mrange_utc.diff
     if diff > 0:
-        page = max * granularity * 60 * MS
+        page = max * interval_min * 60 * MS
+
+        if page > diff:
+            page = diff
+
         remainder = diff % page
 
         for result in range(mrange_utc.start.i, mrange_utc.end.i, page):
@@ -207,5 +225,3 @@ def rolling_pages(mrange_utc: MRange, max, granularity):
           yield result + remainder
         else:
           yield mrange_utc.end.i
-
-

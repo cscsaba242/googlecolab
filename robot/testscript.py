@@ -61,14 +61,15 @@ class Test(unittest.TestCase):
         end = start - timedelta(hours=1)
         startMtime = MTime(start)
         endMtime = MTime(end) 
-
         mrange = MRange(endMtime, startMtime, 1)
-        mrange_gen = rolling_pages(mrange, 10, mrange.interval_min)
-        result = list(mrange_gen)
 
-        for r in result:
-            mtime = MTime(r)
-            print(mtime.s)
+        mrange_gen = rolling_pages(mrange, 1000, mrange.interval_min)
+        result = list(mrange_gen)
+        len_result = len(result)
+        i = 0
+        while i < len_result-1:
+            print(result[i], " - " ,  result[i+1])
+            i += 1
 
 t = Test()
 t.testing_rolling_pages2()
