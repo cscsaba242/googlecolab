@@ -1,7 +1,7 @@
 import broker_abs
 from bybit import ByBit
 from broker_abs import DAY_IN_SEC, HOUR_IN_SEC
-from broker_abs import MTime, MRange, rolling_pages, getLogger
+from broker_abs import MTime, MRange
 import datetime as dt
 from datetime import timedelta
 import pytz
@@ -22,9 +22,8 @@ now_dt_loc = MTime(dt.datetime.now().astimezone(budapest_tz))
 now_minus1h_dt_loc = MTime(now_dt_loc.dt - timedelta(days=1))
 
 mrange_utc = MRange(MTime(now_minus1h_dt_loc.utc), MTime(now_dt_loc.utc), 15)
-
-logger = getLogger("logging_config.yaml")
-broker = ByBit(logger, budapest_tz, 1000)
+broker = ByBit(budapest_tz, 1000)
+vmi = broker.request_data_wrapper("BTCUSDT", 15, mrange_utc)
 
 class Test(unittest.TestCase):
     pass

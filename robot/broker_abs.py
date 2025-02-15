@@ -8,7 +8,7 @@ from logging import config
 import yaml
 import re
 import pdb
-from typing import Tuple
+from typing import Tuple, List
 import asyncio
 
 COLS=['Date','Open','High','Low','Close', 'x', 'y']
@@ -143,6 +143,7 @@ class Intervals():
     MIN30 = 30
 
 class Broker(ABC):
+  name: str = None
   tz_loc = None
   logger: Logger = None
   payload = {}
@@ -160,61 +161,69 @@ class Broker(ABC):
   in ms 60 * 1000 * 1000 = 60_000_000
   '''
 
-  def __init__(self, logger: Logger, tz_loc, max_data_per_request = 0):
-    self.logger = logger
+  def __init__(self, tz_loc, max_data_per_request = 0):
+    self.logger = self.getLogger(self.name)
     self.tz_loc = tz_loc
     self.max_data_per_request = max_data_per_request
     now = datetime.now()
     self.start_dt_utc = MTime(now)
     self.start_dt_loc = MTime(now, tz_loc)
-    self.logger.info(f"start_utc:{self.start_dt_utc.f} / start_loc:{self.start_dt_loc.f}")
+    self.logger.info(f"start_utc:{self.start_dt_utc.s} / start_loc:{self.start_dt_loc.s}")
 
   @abstractmethod
   def request_data(self, symbol:str, range: MRange) -> Tuple[dict, str]:
     pass
 
-  def request_data_wrapper(self, symbol:str, interval_min:int, range: MRange) -> Tuple[dict, str]:
+  def request_data_wrapper(self, symbol:str, interval_min:int, range: MRange) -> Tuple[List, str]:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    pages_gen = rolling_pages(range, self.max_data_per_request, interval_min)
+    pages_gen = self.rolling_pages(range, self.max_data_per_request, interval_min)
     pages = list(pages_gen)
 
     len_pages = len(pages)
     i = 0
-    data = {}
+    data = []
     while i < len_pages - 1:
       mrange = MRange(MTime(pages[i]), MTime(pages[i+1]), interval_min)
       range_data, url = self.request_data(symbol, mrange)
-      data = data | range_data
-    
-'''
-generate pages between dates based on interval(granularity) * max_data_per_request 
-'''
-def rolling_pages(mrange_utc: MRange, max, interval_min):
-    diff = mrange_utc.diff
-    if diff > 0:
-        page = max * interval_min * 60 * MS
+      data.append(range_data)
+      i =+ 1
+    return data, url
 
-        if page > diff:
-            page = diff
+  def getLogger(self, config_name: str) -> Logger:
+    with open(self.LOG_CONFIG, "r") as file:
+        config: dict = yaml.safe_load(file)
+        config['handlers']['timed_file']['filename'] = config_name + '.log'
+        logging.config.dictConfig(config)
+        logger = logging.getLogger(__name__)
+        return logger
 
-        remainder = diff % page
+  '''
+  generate pages between dates based on interval(granularity) * max_data_per_request 
+  '''
+  def rolling_pages(self, mrange_utc: MRange, max, interval_min):
+      diff = mrange_utc.diff
+      interval = interval_min * 60 * MS
+      if diff > 0:
+          page = max * interval
 
-        for result in range(mrange_utc.start.i, mrange_utc.end.i, page):
-          yield result
-        
-        if remainder > 0:
-          yield result + remainder
-        else:
-          yield mrange_utc.end.i
+          if page > diff:
+              page = diff
+          self.logger.debug(f"page/iterval:{page / interval}")
 
-def getLogger(config: str) -> Logger:
-  with open("logging_config.yaml", "r") as file:
-      config = yaml.safe_load(file)
-      logging.config.dictConfig(config)
-      logger = logging.getLogger(__name__)
-      return logger
+          remainder = diff % page
+
+          for result in range(mrange_utc.start.i, mrange_utc.end.i, page):
+            yield result
+            self.logger.debug(f"{MTime(result).s}")
+          
+          if remainder > 0:
+            yield result + remainder
+            self.logger.debug(f"{MTime(result + remainder).s}")
+          else:
+            yield mrange_utc.end.i
+            self.logger.debug(f"{MTime(mrange_utc.end.i).s}") 
 
