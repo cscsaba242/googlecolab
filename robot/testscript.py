@@ -1,10 +1,7 @@
 import broker_abs
 from bybit import ByBit
 from broker_abs import DAY_IN_SEC, HOUR_IN_SEC
-from broker_abs import MTime, MRange, rolling_pages
-import logging
-from logging import config
-import yaml
+from broker_abs import MTime, MRange, rolling_pages, getLogger
 import datetime as dt
 from datetime import timedelta
 import pytz
@@ -19,57 +16,15 @@ WEEK_IN_SEC = 604800
 MONTH_IN_SEC = 2419200
 MS = 1000
 
-with open("./robot/logging_config.yaml", "r") as file:
-    config = yaml.safe_load(file)
-    logging.config.dictConfig(config)
-    logger = logging.getLogger(__name__)
-
 # INIT LOCAL
 budapest_tz = pytz.timezone('Europe/Budapest')
-end_dt_loc = MTime(dt.datetime.now().astimezone(budapest_tz))
-start_dt_loc = MTime(end_dt_loc.dt - timedelta(days=1))
+now_dt_loc = MTime(dt.datetime.now().astimezone(budapest_tz))
+now_minus1h_dt_loc = MTime(now_dt_loc.dt - timedelta(days=1))
 
-# UTC
-start_dt_utc = MTime(start_dt_loc.dt)
-end_dt_utc = MTime(end_dt_loc.dt)
+mrange_utc = MRange(MTime(now_minus1h_dt_loc.utc), MTime(now_dt_loc.utc), 15)
 
-mrange_utc = MRange(start_dt_utc, end_dt_utc, 15)
-print("finished")
-
+logger = getLogger("logging_config.yaml")
+broker = ByBit(logger, budapest_tz, 1000)
 
 class Test(unittest.TestCase):
-    budapest_tz = pytz.timezone('Europe/Budapest')
-    end_dt_loc: MTime
-    start_dt_loc: MTime
-
-    def testing_rolling_pages1(self):
-        start = dt.datetime.strptime("2024-12-01 02:00:00.000000 +00:00","%Y-%m-%d %H:%M:%S.%f %z")
-        end = start - timedelta(hours=1)
-        startMtime = MTime(start)
-        endMtime = MTime(end) 
-
-        mrange = MRange(endMtime, startMtime, 15)
-        mrange_gen = rolling_pages(mrange, 1, mrange.interval_min)
-        result = list(mrange_gen)
-
-        for r in result:
-            mtime = MTime(r)
-            print(mtime.s)
-
-    def testing_rolling_pages2(self):
-        start = dt.datetime.strptime("2024-12-01 02:00:00.000000 +00:00","%Y-%m-%d %H:%M:%S.%f %z")
-        end = start - timedelta(hours=1)
-        startMtime = MTime(start)
-        endMtime = MTime(end) 
-        mrange = MRange(endMtime, startMtime, 1)
-
-        mrange_gen = rolling_pages(mrange, 1000, mrange.interval_min)
-        result = list(mrange_gen)
-        len_result = len(result)
-        i = 0
-        while i < len_result-1:
-            print(result[i], " - " ,  result[i+1])
-            i += 1
-
-t = Test()
-t.testing_rolling_pages2()
+    pass

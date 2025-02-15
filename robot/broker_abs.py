@@ -2,7 +2,10 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from collections import namedtuple
 import pytz
+import logging
 from logging import Logger
+from logging import config
+import yaml
 import re
 import pdb
 from typing import Tuple
@@ -41,8 +44,10 @@ class MTime():
   '''
   timestamp in int
   '''
-  z: timezone
-  
+  tz: timezone
+  '''
+  timezone
+  '''
   def __init__(self, input, tz = pytz.utc):
     if isinstance(input, datetime):
       _ = input
@@ -98,7 +103,7 @@ class MTime():
 
 class MRange():
   '''
-  end > start
+  start < end
   '''
   start: MTime
   end: MTime
@@ -136,9 +141,7 @@ class Intervals():
     MIN5 = 5
     MIN15 = 15
     MIN30 = 30
-'''
-- date col. must in ms
-'''
+
 class Broker(ABC):
   tz_loc = None
   logger: Logger = None
@@ -181,29 +184,11 @@ class Broker(ABC):
 
     len_pages = len(pages)
     i = 0
+    data = {}
     while i < len_pages - 1:
       mrange = MRange(MTime(pages[i]), MTime(pages[i+1]), interval_min)
-      data, url = self.request_data(symbol, mrange)
-      
-      data_len = len(data)
-      # lengths check
-      if(mrange.diff_interval != data_len):
-        errorMsg = f"Invalid length, length:{data_len}, max data per request: {self.max_data_per_request}, url:{url}"
-        self.logger.error(errorMsg)
-        raise Exception(errorMsg)
-
-      i += 1
-
-    
-    # date checks
-    data_start_utc = MTime(str(data[0][0]))
-    data_end_utc = MTime(str(data[self.max_data_per_request-1][0]))
-
-    if((data_start_utc.i != range.end_utc.i) | (data_end_utc.i != range.start_utc.i)):
-      errMsg = f"Error, query and result start end dates should be the same:  {data_start_utc.s} != {range.start_utc.s} or {data_end_utc.s} != {range.end_utc.s}"
-      self.logger.error(errMsg)
-      raise Exception(errMsg)
-    return data, url
+      range_data, url = self.request_data(symbol, mrange)
+      data = data | range_data
     
 '''
 generate pages between dates based on interval(granularity) * max_data_per_request 
@@ -225,3 +210,11 @@ def rolling_pages(mrange_utc: MRange, max, interval_min):
           yield result + remainder
         else:
           yield mrange_utc.end.i
+
+def getLogger(config: str) -> Logger:
+  with open("logging_config.yaml", "r") as file:
+      config = yaml.safe_load(file)
+      logging.config.dictConfig(config)
+      logger = logging.getLogger(__name__)
+      return logger
+
