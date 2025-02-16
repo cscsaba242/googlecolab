@@ -90,4 +90,4 @@ class MRange():
     i = 0
     while i < self.len_pages - 1:
       self.pages.append([pages[i], pages[i+1]])
-      i =+ 1
+      i += 1
