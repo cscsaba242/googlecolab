@@ -17,18 +17,18 @@ MONTH_IN_SEC = 2419200
 
 # INIT LOCAL
 budapest_tz = pytz.timezone('Europe/Budapest')
-now_dt_loc = MTime(dt.datetime.strptime("2025-03-12 00:00:00", "%Y-%m-%d %H:%M:%S").astimezone(budapest_tz))
-now_minus1h_dt_loc = MTime(now_dt_loc.dt - timedelta(days=1))
+end_loc = MTime(dt.datetime.strptime("2025-03-12 00:00:00", "%Y-%m-%d %H:%M:%S").astimezone(budapest_tz))
+start_loc = MTime(end_loc.dt - timedelta(days=1))
 
 class Test(unittest.TestCase):
     
     def testRange(self):
-        mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 1, 10)
+        mrange = MRange(start_loc, end_loc, 1, 10)
         self.assertEqual(mrange.len_pages - 1, 24*60 / 10)
 
-        mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 1, 20)
+        mrange = MRange(start_loc, end_loc, 1, 20)
         self.assertEqual(mrange.len_pages - 1, 24*60 / 20)
 
-        mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 15, 20)
-        self.assertEqual(mrange.pages[1][0] == now_minus1h_dt_loc.i, True)
+        mrange = MRange(start_loc, end_loc, 15, 20)
         self.assertEqual(mrange.len_pages - 1, 5)
+        self.assertEqual(mrange.pages[1][0] == (start_loc.i - 24*60*60*1000)  , True)
