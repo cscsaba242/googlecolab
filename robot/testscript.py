@@ -24,7 +24,11 @@ class Test(unittest.TestCase):
     
     def testRange(self):
         mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 1, 10)
-        self.assertEqual(mrange.len_pages, 24*60 / 10)
+        self.assertEqual(mrange.len_pages - 1, 24*60 / 10)
 
-mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 1, 10)
-print(mrange.pages)
+        mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 1, 20)
+        self.assertEqual(mrange.len_pages - 1, 24*60 / 20)
+
+        mrange = MRange(now_minus1h_dt_loc, now_dt_loc, 15, 20)
+        self.assertEqual(mrange.pages[1][0] == now_minus1h_dt_loc.i, True)
+        self.assertEqual(mrange.len_pages - 1, 5)
