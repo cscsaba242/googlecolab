@@ -16,19 +16,32 @@ WEEK_IN_SEC = 604800
 MONTH_IN_SEC = 2419200
 
 # INIT LOCAL
-budapest_tz = pytz.timezone('Europe/Budapest')
-end_loc = MTime(dt.datetime.strptime("2025-03-12 00:00:00", "%Y-%m-%d %H:%M:%S").astimezone(budapest_tz))
-start_loc = MTime(end_loc.dt - timedelta(days=1))
 
 class Test(unittest.TestCase):
+    budapest_tz = pytz.timezone('Europe/Budapest')
+    end_loc = MTime(dt.datetime.strptime("2025-02-17 14:00:00.000000 +0100", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
+    start_loc = MTime(end_loc.dt - timedelta(days=1), budapest_tz)
     
     def testRange(self):
-        mrange = MRange(start_loc, end_loc, 1, 10)
-        self.assertEqual(mrange.len_pages - 1, 24*60 / 10)
+        self.assertEqual(self.end_loc.s, "2025-02-17 14:00:00.000000 +0100")
+        self.assertEqual(self.end_loc.utc.s, "2025-02-17 13:00:00.000000 +0000")
+        self.assertEqual(self.start_loc.s, "2025-02-16 14:00:00.000000 +0100")
+        self.assertEqual(self.start_loc.utc.s, "2025-02-16 13:00:00.000000 +0000")
 
-        mrange = MRange(start_loc, end_loc, 1, 20)
-        self.assertEqual(mrange.len_pages - 1, 24*60 / 20)
+        mrange = MRange(self.start_loc, self.end_loc, 1, 10)
+        self.assertEqual(mrange.len_pages, 24*60 / 10)
 
-        mrange = MRange(start_loc, end_loc, 15, 20)
-        self.assertEqual(mrange.len_pages - 1, 5)
-        self.assertEqual(mrange.pages[1][0] == (start_loc.i - 24*60*60*1000)  , True)
+        mrange = MRange(self.start_loc, self.end_loc, 1, 20)
+        self.assertEqual(mrange.len_pages, 24*60 / 20)
+
+        mrange = MRange(self.start_loc, self.end_loc, 15, 20)
+        self.assertEqual(mrange.len_pages, 5)
+        
+        start = MTime(mrange.pages[0][0])
+        self.assertEqual(start.s, "2025-02-16 13:00:00.000000 +0000")
+        end = MTime(mrange.pages[4][1])
+        self.assertEqual(end.s, "2025-02-17 13:00:00.000000 +0000")
+        
+        # interval bigger than time diff
+        mrange = MRange(self.start_loc, self.end_loc, 24*60 + 1, 20)
+        self.assertEqual(mrange.len_pages, 0)

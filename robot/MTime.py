@@ -33,7 +33,9 @@ class MTime():
   '''
   timezone
   '''
+
   def __init__(self, input, tz = pytz.utc):
+    self.utc: MTime = None
     if isinstance(input, datetime):
       _ = input
       self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
@@ -84,4 +86,7 @@ class MTime():
       self.tz = self.dt.tzinfo
     else:
       raise Exception(f"Invalid type of input: {input}")
-    self.utc = self.dt.astimezone(pytz.utc)
+    if(self.tz != pytz.utc):
+      self.utc = MTime(self.dt)
+    else: 
+      self.utc = self

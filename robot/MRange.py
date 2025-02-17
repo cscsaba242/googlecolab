@@ -40,21 +40,22 @@ class MRange():
     self.interval = self.interval_min * 60 * MS
     self.diff = end.i - start.i
     self.diff_min = self.diff / MS / 60
-    # if diff < interval -> raise error 'date diff must be greater than interval'
-    if self.diff < self.interval:
-      raise Exception("date diff must be greater than interval")
-    # if diff % self.intervall != 0 -> raise error 'diff must be multiple of the interval'
-    if self.diff % self.interval != 0:
-      raise Exception("diff must be multiple of the interval")
     self.diff_interval = self.diff / self.interval
     self.diff_interval_min = self.diff_min / self.interval_min
-    self.calcPages()
+    if (self.diff < self.interval) or (self.diff % self.interval != 0):
+      self.len_pages = 0
+      self.pages = []
+    else: 
+      self.calcPages()
 
   '''
   generate pages between dates based on interval(granularity) * max_data_per_request 
   '''
   def rolling_pages(self):
       if self.diff > 0:
+          if self.diff < self.interval:
+            yield None
+
           page = self.max * self.interval
 
           if page > self.diff:
@@ -62,16 +63,13 @@ class MRange():
 
           remainder = self.diff % page
           
-          start_utc:MTime = MTime(self.start.utc)
-          end_utc:MTime = MTime(self.end.utc)
-
-          for result in range(start_utc.i, end_utc.i, page):
+          for result in range(self.start.utc.i, self.end.utc.i, page):
             yield result
           
           if remainder > 0:
             yield result + remainder
           else:
-            yield end_utc.i
+            yield self.end.utc.i
 
   def setMax(self, max: int):
     self.max = max
@@ -86,8 +84,10 @@ class MRange():
     self.pages = []
     self._gen_pages = self.rolling_pages()
     pages = list(self._gen_pages)
-    self.len_pages = len(pages)
+    _ = len(pages)
     i = 0
-    while i < self.len_pages - 1:
+    while i < _ - 1:
       self.pages.append([pages[i], pages[i+1]])
       i += 1
+    self.len_pages = i
+    
