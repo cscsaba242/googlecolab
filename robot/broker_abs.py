@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from collections import namedtuple
-import MTime
-import MRange
+from MTime import MTime
+from MRange import MRange
 import logging
 from logging import Logger
 from logging import config
@@ -53,27 +53,27 @@ class Broker(ABC):
     self.logger.info(f"start_utc:{self.start_dt_utc.s} / start_loc:{self.start_dt_loc.s}")
 
   @abstractmethod
-  def request_data(self, symbol:str, range: MRange) -> Tuple[dict, str]:
+  def request_data(self, symbol:str, range: MRange) -> Tuple[List, str]:
     pass
 
-  def request_data_wrapper(self, symbol:str, interval_min:int, range: MRange) -> Tuple[List, str]:
+  def request_data_wrapper(self, symbol:str, mrange: MRange) -> Tuple[List, str]:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    pages_gen = self.rolling_pages(range, self.max_data_per_request, interval_min)
-    pages = list(pages_gen)
+    result, url = self.request_data(symbol, mrange)
+    result = sorted(result, key=lambda d: d[0])
+    
+    if(len(result) != mrange.diff_interval_min):
+        errMsg = f"Request data length error: {len(result)} != {mrange.diff_interval}"
+        self.logger.error(errMsg)
+        raise Exception (errMsg)
+    return result, url
 
-    len_pages = len(pages)
-    i = 0
-    data = []
-    while i < len_pages - 1:
-      mrange = MRange(MTime(pages[i]), MTime(pages[i+1]), interval_min)
-      range_data, url = self.request_data(symbol, mrange)
-      data.append(range_data)
-      i =+ 1
-    return data, url
+  def getDataAsDataFrame(self, symbol: str, range: MRange) -> List:
+    data, url =self.request_data_wrapper(symbol, range)
+    return data
 
   def getLogger(self, config_name: str) -> Logger:
     with open(self.LOG_CONFIG, "r") as file:

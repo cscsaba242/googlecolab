@@ -1,6 +1,10 @@
-from broker_abs import Broker, MTime, MRange
+from broker_abs import Broker
+from MTime import MTime
+from MRange import MRange
 import requests
-from typing import Tuple
+from typing import Tuple, List
+from datetime import datetime
+
 
 class ByBit(Broker):
   CATEGORY = "linear"
@@ -12,25 +16,29 @@ class ByBit(Broker):
     self.name = "bybit"
     super().__init__(tz, max)
   
-  def request_data(self, symbol:str, mrange_loc: MRange) -> Tuple[dict, str]:
+  def request_data(self, symbol:str, mrange: MRange) -> Tuple[List, str]:
     RESP_CODE = "retCode"
     RESP_MSG = "retMsg"
     RESP_SYM = "symbol"
     RESP_RES = "result"
+    RESP_DATA_LIST = "list"
 
-    mrange_utc = MRange(MTime(mrange_loc.start.dt), MTime(mrange_loc.end.dt), mrange_loc.interval_min)
+    result = []
+    for page in mrange.pages:
+      self.logger.info(f"{symbol=}, {mrange.interval_min=}")
+      self.logger.info(f"start_loc:{mrange.start.s} / end_loc:{mrange.end.s}") 
+      self.logger.info(f"start_utc:{mrange.start.utc.s} / end_utc:{mrange.end.utc.s}")
+
+      url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={mrange.interval_min}&start={page[0]}&end={page[1]}"
+      response = requests.request("GET", url, headers=self.headers, data=self.payload).json()
+      
+      if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):
+        errMsg = f"Resquest error {response[RESP_CODE]}, {response[RESP_MSG]}, {response[RESP_RES][RESP_SYM]}"
+        self.logger.error(errMsg)
+        raise Exception (errMsg)
+      
+      self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
+      result += response[RESP_RES][RESP_DATA_LIST]   
+    return result, url
     
-    self.logger.info(f"{symbol=}, {mrange_loc.interval=}")
-    self.logger.info(f"start_loc:{mrange_loc.start.s} / end_loc:{mrange_loc.end.s}") 
-    self.logger.info(f"start_utc:{mrange_utc.start.s} / end_utc:{mrange_utc.end.s}")
-    
-    url = f"{self.URL}/v5/market/kline?category={self.CATEGORY}&symbol={symbol}&interval={mrange_loc.interval_min}&start={mrange_utc.start.si}&end={mrange_utc.end.si}"
-    response = requests.request("GET", url, headers=self.headers, data=self.payload).json()
-    
-    if(response[RESP_CODE] != 0 or response[RESP_MSG] != 'OK' or response[RESP_RES][RESP_SYM] != symbol):
-      errMsg = f"Resquest error {response[RESP_CODE]}, {response[RESP_MSG]}, {response[RESP_RES][RESP_SYM]}"
-      self.logger.error(errMsg)
-      raise Exception (errMsg)
-    
-    self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
-    return response[RESP_RES]['list'], url
+

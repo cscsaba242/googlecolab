@@ -78,6 +78,7 @@ class MRange():
   def setInterval(self, interval_min: int):
     self.interval_min = interval_min
     self.interval = self.interval_min * 60 * MS
+    self.diff_interval = self.diff / self.interval
     self.calcPages()
 
   def calcPages(self):
