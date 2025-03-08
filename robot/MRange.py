@@ -28,9 +28,6 @@ class MRange():
   len_pages = 0
   
   def __init__(self, start: MTime, end: MTime, interval_min:int, max = 1000):
-    '''
-    start .... > end
-    '''
     if start.i > end.i:
       raise Exception("start must be < end ")
     self.max = max

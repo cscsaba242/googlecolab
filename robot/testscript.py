@@ -16,7 +16,9 @@ end_loc = MTime(datetime.now(budapest_tz))
 start_loc = MTime(end_loc.dt - timedelta(hours=1), budapest_tz)
 
 bybit = ByBit(budapest_tz, 1000)
-data = bybit.getDataAsDataFrame("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
+bybit.run("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
+
+# data = bybit.getDataAsDataFrame("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
 print("end")
 
 class Test(unittest.TestCase):
