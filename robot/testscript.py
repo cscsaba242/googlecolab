@@ -18,9 +18,6 @@ start_loc = MTime(end_loc.dt - timedelta(hours=1), budapest_tz)
 bybit = ByBit(budapest_tz, 1000)
 bybit.run("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
 
-# data = bybit.getDataAsDataFrame("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
-print("end")
-
 class Test(unittest.TestCase):
     budapest_tz = pytz.timezone('Europe/Budapest')
     end_loc = MTime(dt.datetime.strptime("2025-02-17 14:00:00.000000 +0100", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)

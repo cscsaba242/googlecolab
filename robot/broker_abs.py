@@ -105,14 +105,18 @@ class Broker(ABC):
   def run(self, symbol: str, range: MRange):
     i = 0
     step = 1
+    max = 65
     while os.path.exists(self.run_file_name):
-      print("\r working")
+      self.put_progress_text("working " + str(i) + "/" + str(max) + " sec...", i, 2)
       time.sleep(1)
       # for calling something every X sec
       i += step
-      if i == 10:
+      if i == max:
          # calling something
-         self.getDataAsDataFrame(symbol, range)
+         self.logger.info(range.start.s + " - " + range.end.s)
+         df = self.getDataAsDataFrame(symbol, range)
+         print(df)
+         range = MRange(MTime(datetime.now(range.end.tz)), MTime(datetime.now(range.end.tz)), range.interval_min, range.max)
          i = 0
     self.on_end()
   
@@ -124,10 +128,9 @@ class Broker(ABC):
         i = 0
         step = 10
         max_sec = 80
-        while i != max_sec:   
+        while i != max_sec:
           text = "waiting " + str(i) + "/" + str(max_sec) + " sec... to stop and start again"
-          sys.stdout.write('\r' + text)
-          sys.stdout.flush()
+          self.put_progress_text(text, i , 20)
           time.sleep(step)
           i += step
       with open(self.run_file_name, 'w') as file:
@@ -141,3 +144,10 @@ class Broker(ABC):
     else:
       self.logger.info(f"on_end: {self.run_file_name} not expected end")
     return
+  
+  def put_progress_text(self, text, x, y):
+        progress_char = "-" if x % y == 0 else "+"   
+        sys.stdout.write('\r' + progress_char + text)
+        sys.stdout.flush()
+
+     
