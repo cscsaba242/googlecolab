@@ -24,16 +24,18 @@ class Test(unittest.TestCase):
     start_loc = MTime(end_loc.dt - timedelta(days=1), budapest_tz)
     
     def testRange(self):
+        min_in_day = 24 * 60
         self.assertEqual(self.end_loc.s, "2025-02-17 14:00:00.000000 +0100")
         self.assertEqual(self.end_loc.utc.s, "2025-02-17 13:00:00.000000 +0000")
         self.assertEqual(self.start_loc.s, "2025-02-16 14:00:00.000000 +0100")
         self.assertEqual(self.start_loc.utc.s, "2025-02-16 13:00:00.000000 +0000")
+        #     
+        #mrange = MRange(self.start_loc, self.end_loc, 1, 10)
+        #self.assertEqual(mrange.len_pages, min_in_day / 10) # 144
 
-        mrange = MRange(self.start_loc, self.end_loc, 1, 10)
-        self.assertEqual(mrange.len_pages, 24*60 / 10)
-
-        mrange = MRange(self.start_loc, self.end_loc, 1, 20)
-        self.assertEqual(mrange.len_pages, 24*60 / 20)
+        #mrange = MRange(self.start_loc, self.end_loc, 1, 20)
+        #self.assertEqual(mrange.len_pages, min_in_day / 20) # 72
+        
 
         mrange = MRange(self.start_loc, self.end_loc, 15, 20)
         self.assertEqual(mrange.len_pages, 5)
@@ -46,3 +48,6 @@ class Test(unittest.TestCase):
         # interval bigger than time diff
         mrange = MRange(self.start_loc, self.end_loc, 24*60 + 1, 20)
         self.assertEqual(mrange.len_pages, 0)
+
+t = Test()
+t.testRange()

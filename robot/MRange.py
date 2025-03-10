@@ -15,6 +15,9 @@ class MRange():
   interval in min
   '''
   interval: int
+  '''
+  interval in ms
+  '''
   interval_min: int
   diff_min: int
   diff_interval: int
@@ -22,15 +25,15 @@ class MRange():
   diff: int
   quotient: int
   remainder: int
-  max: int
+  max_per_request: int
   _gen_pages = None
   pages = []
   len_pages = 0
   
-  def __init__(self, start: MTime, end: MTime, interval_min:int, max = 1000):
+  def __init__(self, start: MTime, end: MTime, interval_min:int, max_per_request = 1000):
     if start.i > end.i:
       raise Exception("start must be < end ")
-    self.max = max
+    self.max_per_request = max_per_request
     self.start = start
     self.end = end
     self.interval_min = interval_min
@@ -39,7 +42,7 @@ class MRange():
     self.diff_min = self.diff / MS / 60
     self.diff_interval = self.diff / self.interval
     self.diff_interval_min = self.diff_min / self.interval_min
-    if (self.diff < self.interval) or (self.diff % self.interval != 0):
+    if (self.diff < self.interval):
       self.len_pages = 0
       self.pages = []
     else: 
@@ -51,16 +54,16 @@ class MRange():
   def rolling_pages(self):
       if self.diff > 0:
           if self.diff < self.interval:
-            yield None
+            raise Exception("Shouldnt be called in this case.")
 
-          page = self.max * self.interval
+          page = self.max_per_request * self.interval
 
           if page > self.diff:
               page = self.diff
 
           remainder = self.diff % page
           
-          for result in range(self.start.utc.i, self.end.utc.i, page):
+          for result in range(self.end.utc.i, self.start.utc.i, -page):
             yield result
           
           if remainder > 0:
@@ -69,7 +72,7 @@ class MRange():
             yield self.end.utc.i
 
   def setMax(self, max: int):
-    self.max = max
+    self.max_per_request = max
     self.calcPages()
 
   def setInterval(self, interval_min: int):
