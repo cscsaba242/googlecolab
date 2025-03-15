@@ -63,7 +63,7 @@ class MRange():
 
           remainder = self.diff % page
           
-          for result in range(self.end.utc.i, self.start.utc.i, -page):
+          for result in range(self.start.utc.i, self.end.utc.i, page):
             yield result
           
           if remainder > 0:
@@ -89,6 +89,8 @@ class MRange():
     i = 0
     while i < _ - 1:
       self.pages.append([pages[i], pages[i+1]])
+      start = MTime(pages[i])
+      end = MTime(pages[i+1])
+      print(f"{start.s} - {end.s}")
       i += 1
     self.len_pages = i
-    

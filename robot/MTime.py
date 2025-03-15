@@ -39,6 +39,7 @@ class MTime():
     if isinstance(input, datetime):
       _ = input
       self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
+      self.dt.replace(microsecond=0)
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.f = self.dt.timestamp() 
       self.i = int(self.f * MS)

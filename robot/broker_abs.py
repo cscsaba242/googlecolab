@@ -65,16 +65,19 @@ class Broker(ABC):
     self.logger.info(f"start_utc:{self.start_dt_utc.s} / start_loc:{self.start_dt_loc.s}")
 
   @abstractmethod
-  def request_data(self, symbol:str, range: MRange) -> Tuple[List, str]:
+  def request_data(self, symbol:str, range: MRange) -> List:
     pass
 
-  def request_data_wrapper(self, symbol:str, mrange: MRange) -> Tuple[List, str]:
+  def request_data_wrapper(self, symbol:str, mrange: MRange) -> List:
     '''
     reises: 
       - Invalid length
       - Invalid start - end date
     '''
-    result, url = self.request_data(symbol, mrange)
+    result = self.request_data(symbol, mrange)
+    if result is None:
+       return None, None
+    
     result = sorted(result, key=lambda d: d[0])
     
     if(len(result) != mrange.diff_interval_min):
@@ -83,16 +86,18 @@ class Broker(ABC):
         raise Exception (errMsg)
     else:
        self.logger.info(f"Requested data length OK. {len(result)=} == {mrange.diff_interval_min=}")
-    return result, url
+    return result
 
   def getDataAsDataFrame(self, symbol: str, range: MRange) -> List:
-    data, url =self.request_data_wrapper(symbol, range)
+    data = self.request_data_wrapper(symbol, range)
+    if data is None:
+      return None
     result = pd.DataFrame(data, columns=self.cols)
     result['timestamp'] = pd.to_datetime(result['timestamp'], unit='ms')
     for col in ['Open', 'High', 'Low', 'Close']:
         if col in result.columns:
           result[col] = pd.to_numeric(result[col], errors='coerce')
-    return data
+    return result
 
   def getLogger(self, config_name: str) -> Logger:
     with open(self.LOG_CONFIG, "r") as file:
@@ -106,19 +111,21 @@ class Broker(ABC):
     i = 0
     step = 1
     max = 65
-    while os.path.exists(self.run_file_name):
-      self.put_progress_text("working " + str(i) + "/" + str(max) + " sec...", i, 2)
-      time.sleep(1)
-      # for calling something every X sec
-      i += step
-      if i == max:
-         # calling something
-         self.logger.info(range.start.s + " - " + range.end.s)
-         df = self.getDataAsDataFrame(symbol, range)
-         print(df)
-         range = MRange(MTime(datetime.now(range.end.tz)), MTime(datetime.now(range.end.tz)), range.interval_min, range.max)
-         i = 0
-    self.on_end()
+    try:
+      while os.path.exists(self.run_file_name):
+        self.put_progress_text("working " + str(i) + "/" + str(max) + " sec...", i, 2)
+        time.sleep(1)
+        # for calling something every X sec
+        i += step
+        if i == max:
+          # calling something
+          self.logger.info("range:" + range.start.s + " - " + range.end.s)
+          df = self.getDataAsDataFrame(symbol, range)
+          range = MRange(range.end, MTime(datetime.now(range.end.tz)), range.interval_min, range.max_per_request)
+          i = 0
+      self.on_end("OK")
+    except Exception:
+      self.on_end("Exception")
   
   def on_init(self):
       if os.path.exists(self.run_file_name):
@@ -137,12 +144,10 @@ class Broker(ABC):
         pass
       return
   
-  def on_end(self):
+  def on_end(self, message):
     if os.path.exists(self.run_file_name):
       os.remove(self.run_file_name)
-      self.logger.info(f"on_end: {self.run_file_name} normal end")
-    else:
-      self.logger.info(f"on_end: {self.run_file_name} not expected end")
+      self.logger.info(f"on_end: {self.run_file_name} end: {message}")
     return
   
   def put_progress_text(self, text, x, y):

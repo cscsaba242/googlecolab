@@ -17,6 +17,8 @@ class ByBit(Broker):
     super().__init__(tz, max)
   
   def request_data(self, symbol:str, mrange: MRange) -> Tuple[List, str]:
+    if len(mrange.pages):
+        return None, None
     RESP_CODE = "retCode"
     RESP_MSG = "retMsg"
     RESP_SYM = "symbol"
@@ -39,6 +41,6 @@ class ByBit(Broker):
       
       self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
       result += response[RESP_RES][RESP_DATA_LIST]   
-    return result, url
+    return result
     
 
