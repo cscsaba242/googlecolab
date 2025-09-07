@@ -4,9 +4,12 @@ import pdb
 from MTime import MTime
 MS=1000
 
+'''
+  start -> end
+'''
 class MRange():
   '''
-  start < end
+  start < end - start must be older
   '''
   start: MTime
   end: MTime
@@ -42,6 +45,7 @@ class MRange():
     self.diff_min = self.diff / MS / 60
     self.diff_interval = self.diff / self.interval
     self.diff_interval_min = self.diff_min / self.interval_min
+    # if start end diff is less than the interval we need
     if (self.diff < self.interval):
       self.len_pages = 0
       self.pages = []

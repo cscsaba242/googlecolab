@@ -12,11 +12,9 @@ import pandas as pd
 from pandas import DataFrame
 
 budapest_tz = pytz.timezone('Europe/Budapest')
-end_loc = MTime(datetime.now(budapest_tz))
-start_loc = MTime(end_loc.dt - timedelta(hours=1), budapest_tz)
 
-bybit = ByBit(budapest_tz, 1000)
-bybit.run("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
+#bybit = ByBit(budapest_tz, 1000)
+#bybit.run("BTCUSD", MRange(MTime(start_loc.dt), MTime(end_loc.dt), 15, 2))
 
 class Test(unittest.TestCase):
     budapest_tz = pytz.timezone('Europe/Budapest')
@@ -29,18 +27,11 @@ class Test(unittest.TestCase):
         self.assertEqual(self.end_loc.utc.s, "2025-02-17 13:00:00.000000 +0000")
         self.assertEqual(self.start_loc.s, "2025-02-16 14:00:00.000000 +0100")
         self.assertEqual(self.start_loc.utc.s, "2025-02-16 13:00:00.000000 +0000")
-        #     
-        #mrange = MRange(self.start_loc, self.end_loc, 1, 10)
-        #self.assertEqual(mrange.len_pages, min_in_day / 10) # 144
-
-        #mrange = MRange(self.start_loc, self.end_loc, 1, 20)
-        #self.assertEqual(mrange.len_pages, min_in_day / 20) # 72
         
-
         mrange = MRange(self.start_loc, self.end_loc, 15, 20)
         self.assertEqual(mrange.len_pages, 5)
         
-        start = MTime(mrange.pages[0][0])
+        start = MTime(mrange.pages[0][0], pytz.utc)
         self.assertEqual(start.s, "2025-02-16 13:00:00.000000 +0000")
         end = MTime(mrange.pages[4][1])
         self.assertEqual(end.s, "2025-02-17 13:00:00.000000 +0000")

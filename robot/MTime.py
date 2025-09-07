@@ -70,8 +70,13 @@ class MTime():
     elif isinstance(input, float):
       self.f = input
       self.i = self.f * MS
-      _ = datetime.fromtimestamp(self.f)
-      self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
+      if tz == pytz.utc:
+        _ = datetime.utcfromtimestamp(self.f)
+        _.replace(tzinfo=pytz.utc)
+      else:
+        _ = datetime.fromtimestamp(self.f)
+        _ = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
+      self.dt = _
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.fs = str(self.f)
       self.fi = str(self.i)
@@ -79,8 +84,13 @@ class MTime():
     elif isinstance(input, int):
       self.i = input
       self.f = self.i / MS
-      _ = datetime.fromtimestamp(self.f)
-      self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
+      if tz == pytz.utc:
+        _ = datetime.utcfromtimestamp(self.f)
+        _.replace(tzinfo=pytz.utc)
+      else:
+        _ = datetime.fromtimestamp(self.f)
+        _ = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
+      self.dt = _
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.fs = str(self.f)
       self.fi = str(self.i)
