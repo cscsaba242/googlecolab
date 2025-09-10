@@ -4,12 +4,12 @@ import pdb
 from MTime import MTime
 MS=1000
 
-'''
-  start -> end
-'''
 class MRange():
   '''
-  start < end - start must be older
+  start
+  ..
+  ..
+  end
   '''
   start: MTime
   end: MTime
