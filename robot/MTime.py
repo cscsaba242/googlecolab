@@ -72,7 +72,8 @@ class MTime():
       self.i = self.f * MS
       if tz == pytz.utc:
         _ = datetime.utcfromtimestamp(self.f)
-        _.replace(tzinfo=pytz.utc)
+        if _.tzinfo is None:
+          _ = _.replace(tzinfo=pytz.utc)
       else:
         _ = datetime.fromtimestamp(self.f)
         _ = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
@@ -86,7 +87,8 @@ class MTime():
       self.f = self.i / MS
       if tz == pytz.utc:
         _ = datetime.utcfromtimestamp(self.f)
-        _.replace(tzinfo=pytz.utc)
+        if _.tzinfo is None:
+          _ = _.replace(tzinfo=pytz.utc)
       else:
         _ = datetime.fromtimestamp(self.f)
         _ = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
