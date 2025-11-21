@@ -1,10 +1,13 @@
 from datetime import datetime, timezone
+from typing import Iterator, Optional
 import pytz
 import pdb
 from MTime import MTime
+from Range import Range
+
 MS=1000
 
-class MRange():
+class MRange(Range):
   '''
   start
   ..
@@ -29,7 +32,7 @@ class MRange():
   quotient: int
   remainder: int
   max_per_request: int
-  _gen_pages = None
+  _gen_pages: Optional[Iterator[int]] = None
   pages = []
   len_pages = 0
   
@@ -52,29 +55,6 @@ class MRange():
     else: 
       self.calcPages()
 
-  '''
-  generate pages between dates based on interval(granularity) * max_data_per_request 
-  '''
-  def rolling_pages(self):
-      if self.diff > 0:
-          if self.diff < self.interval:
-            raise Exception("Shouldnt be called in this case.")
-
-          page = self.max_per_request * self.interval
-
-          if page > self.diff:
-              page = self.diff
-
-          remainder = self.diff % page
-          
-          for result in range(self.start.utc.i, self.end.utc.i, page):
-            yield result
-          
-          if remainder > 0:
-            yield result + remainder
-          else:
-            yield self.end.utc.i
-
   def setMax(self, max: int):
     self.max_per_request = max
     self.calcPages()
@@ -84,17 +64,3 @@ class MRange():
     self.interval = self.interval_min * 60 * MS
     self.diff_interval = self.diff / self.interval
     self.calcPages()
-
-  def calcPages(self):
-    self.pages = []
-    self._gen_pages = self.rolling_pages()
-    pages = list(self._gen_pages)
-    _ = len(pages)
-    i = 0
-    while i < _ - 1:
-      self.pages.append([pages[i], pages[i+1]])
-      start = MTime(pages[i])
-      end = MTime(pages[i+1])
-      print(f"{start.s} - {end.s}")
-      i += 1
-    self.len_pages = i
