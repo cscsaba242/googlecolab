@@ -10,10 +10,10 @@ import yaml
 import os
 import pandas as pd
 from pandas import DataFrame
-from typing import Tuple, List
+from typing import List
 import time
 
-from robot import MException
+from MException import MException
 
 COLS=['timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'FOO']
 DAY_IN_SEC=86400

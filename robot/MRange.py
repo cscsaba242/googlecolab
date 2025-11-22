@@ -53,14 +53,10 @@ class MRange(Range):
       self.len_pages = 0
       self.pages = []
     else: 
-      self.calcPages()
-
-  def setMax(self, max: int):
-    self.max_per_request = max
-    self.calcPages()
+      self.calcPages(self.start.i, self.end.i, self.interval, self.max_per_request)
 
   def setInterval(self, interval_min: int):
     self.interval_min = interval_min
     self.interval = self.interval_min * 60 * MS
     self.diff_interval = self.diff / self.interval
-    self.calcPages()
+    self.calcPages(self.start.i, self.end.i, self.interval, self.max_per_request)

@@ -9,6 +9,11 @@ class MTime():
 
   utc: datetime
   dt: datetime
+  sYmdHMS: str
+  '''
+  datetime in string format %Y-%m-%d %H:%M:%S" without timezone information
+  '''
+  
   s: str
   '''
   datetime in string format
@@ -40,22 +45,22 @@ class MTime():
       _ = input
       self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
       self.dt.replace(microsecond=0)
-      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.f = self.dt.timestamp() 
       self.i = int(self.f * MS)
       self.sf = str(self.f)
       self.si = str(self.i)
-      self.tz = self.dt.tzinfo
+      self._generateCommons(self.dt)
     elif isinstance(input, str):
       input = str(input)
+      # if the input string is FLOAT format
       if re.match(self.FLOAT_TS, input):
         self.sf = input
         self.f = float(self.sf)
         self.i = self.f * MS
         _ = datetime.fromtimestamp(self.f)
         self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
-        self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-        self.tz = self.dt.tzinfo
+        self._generateCommons(self.dt)
+      # if the input string is in INT format
       elif re.match(self.INT_TS, input):
         self.si = input
         self.i = int(self.si)
@@ -63,8 +68,7 @@ class MTime():
         self.sf = str(self.f)
         _ = datetime.fromtimestamp(self.f)
         self.dt = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
-        self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-        self.tz = self.dt.tzinfo
+        self._generateCommons(self.dt)
       else:
         raise Exception(f"Invalid string datetime format: {input}")  
     elif isinstance(input, float):
@@ -78,10 +82,9 @@ class MTime():
         _ = datetime.fromtimestamp(self.f)
         _ = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
       self.dt = _
-      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.fs = str(self.f)
       self.fi = str(self.i)
-      self.tz = self.dt.tzinfo
+      self._generateCommons(self.dt)
     elif isinstance(input, int):
       self.i = input
       self.f = self.i / MS
@@ -93,13 +96,19 @@ class MTime():
         _ = datetime.fromtimestamp(self.f)
         _ = tz.localize(_) if _.tzinfo is None else _.astimezone(tz)
       self.dt = _
-      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
       self.fs = str(self.f)
       self.fi = str(self.i)
-      self.tz = self.dt.tzinfo
+      self._generateCommons(self.dt)
     else:
       raise Exception(f"Invalid type of input: {input}")
-    if(self.tz != pytz.utc):
-      self.utc = MTime(self.dt)
-    else: 
-      self.utc = self
+
+  def _generateCommons(self, dt: datetime):
+      self.tz = self.dt.tzinfo
+      self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
+      self.sYmdHMS = self.dt.strftime("%Y-%m-%d %H:%M:%S")
+
+      if(self.tz != pytz.utc):
+        self.utc = MTime(self.dt)
+      else: 
+        self.utc = self
+

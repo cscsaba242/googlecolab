@@ -33,7 +33,7 @@ class Range():
     else:
         yield end
 
-  def calcPages(self, start, end, interval, max_per_request):
+  def calcPages(self, start: int, end: int, interval: int, max_per_request: int):
     self.pages = []
     self._gen_pages = self.rolling_pages(start, end, interval, max_per_request)
     pages = list(self._gen_pages)
