@@ -1,4 +1,4 @@
-from broker_abs import Broker
+from robot.IBroker import IBroker
 from MTime import MTime
 from MRange import MRange
 import requests
@@ -6,7 +6,7 @@ from typing import Tuple, List
 from datetime import datetime
 
 
-class ByBit(Broker):
+class ByBit(IBroker):
   CATEGORY = "linear"
   URL = "https://api-testnet.bybit.com"
   max_data_per_request = 1000
@@ -14,6 +14,7 @@ class ByBit(Broker):
   
   def __init__(self, tz, max):
     self.name = "bybit"
+    self.tz_loc = tz
     super().__init__(tz, max)
   
   def request_data(self, symbol:str, mrange: MRange) -> Tuple[List, str]:
