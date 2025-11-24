@@ -27,7 +27,7 @@ class Intervals():
     MIN15 = 15
     MIN30 = 30
 
-class IBroker(ABC, MLogger):
+class IRequestData(ABC, MLogger):
   name: str = None
   tz_loc = pytz.timezone('Europe/Budapest')
   logger: Logger = None
@@ -36,7 +36,7 @@ class IBroker(ABC, MLogger):
   MAX_DATA_PER_REQUEST = 1000
   COLS=[]
   URL = None
-  df: DataFrame = None
+  data = None
   run_file_name = None
   
   def __init__(self, name, tz_loc, max_data_per_request = 10, cols = COLS, symbols = []):
@@ -63,8 +63,7 @@ class IBroker(ABC, MLogger):
         i += step
         if i == max:
           self.logger.info("range:" + range.start.s + " - " + range.end.s)
-          ## df = self.getDataAsDataFrame(symbol, range)
-          ## range = MRange(range.end, MTime(datetime.now(range.end.tz)), range.interval_min, range.max_per_request)
+          df = self.getDataAsDataFrame(symbol, range)
           i = 0
       self._on_end("OK")
     except Exception:

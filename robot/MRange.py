@@ -48,7 +48,6 @@ class MRange(Range, MLogger):
     self.interval = self.interval_min * 60 * MS
     self.diff = end.i - start.i
     self.diff_min = self.diff / MS / 60
-    self.diff_interval = self.diff / self.interval
     self.diff_interval_min = self.diff_min / self.interval_min
     # if start end diff is less than the interval we need
     if (self.diff < self.interval):
@@ -60,5 +59,4 @@ class MRange(Range, MLogger):
   def setInterval(self, interval_min: int):
     self.interval_min = interval_min
     self.interval = self.interval_min * 60 * MS
-    self.diff_interval = self.diff / self.interval
     self.calcPages(self.start.i, self.end.i, self.interval, self.max_per_request)

@@ -55,6 +55,7 @@ class MTime(MLogger):
       self.sf = str(self.f)
       self.si = str(self.i)
       self._generateCommons(self.dt)
+    # TODO handle date string inputs
     elif isinstance(input, str):
       input = str(input)
       # if the input string is FLOAT format

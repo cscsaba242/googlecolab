@@ -41,6 +41,8 @@ class Range(MLogger):
         yield end
 
   def calcPages(self, start: int, end: int, interval: int, max_per_request: int):
+    self.logger.debug(f"interval: {interval=}, {max_per_request=}")
+    self.logger.debug(f"start: {MTime(start).s}, end: {MTime(end).s}")
     self.pages = []
     self._gen_pages = self.rolling_pages(start, end, interval, max_per_request)
     pages = list(self._gen_pages)
