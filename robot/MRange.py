@@ -1,15 +1,14 @@
 from datetime import datetime, timezone
 from typing import Iterator, Optional
-import pytz
-import pdb
 from MTime import MTime
 from Range import Range
+from MLogger import MLogger
 
 MS=1000
 
-class MRange(Range):
+class MRange(Range, MLogger):
   '''
-  start
+  start must be < end 
   ..
   ..
   end
@@ -35,8 +34,11 @@ class MRange(Range):
   _gen_pages: Optional[Iterator[int]] = None
   pages = []
   len_pages = 0
-  
-  def __init__(self, start: MTime, end: MTime, interval_min:int, max_per_request = 1000):
+  logger: MLogger = None
+
+  def __init__(self, start: MTime, end: MTime, interval_min:int, max_per_request = 1000, name = "MRange"):
+    super().__init__(name)
+
     if start.i > end.i:
       raise Exception("start must be < end ")
     self.max_per_request = max_per_request

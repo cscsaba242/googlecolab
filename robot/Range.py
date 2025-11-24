@@ -7,8 +7,15 @@ interval: stock data time interval 1, 5, 15, 30, 60 (minutes) - should no bigger
 (interval is in minute)
 max per request: data provider max data points per request
 '''
-class Range():
+from logging import Logger
+from MLogger import MLogger
+from MTime import MTime
 
+class Range(MLogger):
+  logger: Logger = None
+  def __init__(self, name = "MRange"):
+    self.logger = self._getLogger(name)
+      
   def rolling_pages(self, start, end, interval, max_per_request):
     # start must be less then end
     diff = end - start
@@ -27,7 +34,7 @@ class Range():
     remainder = diff % page
             
     for result in range(start, end, page):
-            yield result          
+            yield result 
     if remainder > 0:
         yield result + remainder
     else:
@@ -41,6 +48,7 @@ class Range():
     i = 0
     while i < pages_count - 1:
       self.pages.append([pages[i], pages[i+1]])
+      self.logger.debug(f"page {i}: {MTime(self.pages[i][0]).s} - {MTime(self.pages[i][1]).s}")
       i += 1
     self.len_pages = i
 

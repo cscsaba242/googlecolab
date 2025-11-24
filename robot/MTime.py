@@ -1,11 +1,16 @@
 from datetime import datetime, timezone
 import pytz
 import re
+from logging import Logger
+from MLogger import MLogger
+
 MS=1000
-class MTime():
+class MTime(MLogger):
   DATE_TIME_DISPLAY_LONG_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
+  DATE_TIME_DISPLAY_SHORT_FORMAT = "%Y-%m-%d"
   FLOAT_TS = r"[0-9]{10}\.[0-9]{3}"
   INT_TS = r"[0-9]{13}"
+  logger: Logger = None
 
   utc: datetime
   dt: datetime
@@ -105,7 +110,7 @@ class MTime():
   def _generateCommons(self, dt: datetime):
       self.tz = self.dt.tzinfo
       self.s = self.dt.strftime(self.DATE_TIME_DISPLAY_LONG_FORMAT)
-      self.sYmdHMS = self.dt.strftime("%Y-%m-%d %H:%M:%S")
+      self.sYmdHMS = self.dt.strftime(self.DATE_TIME_DISPLAY_SHORT_FORMAT)
 
       if(self.tz != pytz.utc):
         self.utc = MTime(self.dt)

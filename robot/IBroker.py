@@ -3,10 +3,8 @@ from abc import ABC, abstractmethod
 import pytz
 
 from MRange import MRange
-import logging
 from logging import Logger
 import sys
-import yaml
 import os
 import pandas as pd
 from pandas import DataFrame
@@ -14,6 +12,7 @@ from typing import List
 import time
 
 from MException import MException
+from MLogger import MLogger
 
 COLS=['timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'FOO']
 DAY_IN_SEC=86400
@@ -28,7 +27,7 @@ class Intervals():
     MIN15 = 15
     MIN30 = 30
 
-class IBroker(ABC):
+class IBroker(ABC, MLogger):
   name: str = None
   tz_loc = pytz.timezone('Europe/Budapest')
   logger: Logger = None
@@ -39,7 +38,7 @@ class IBroker(ABC):
   URL = None
   df: DataFrame = None
   run_file_name = None
- 
+  
   def __init__(self, name, tz_loc, max_data_per_request = 10, cols = COLS, symbols = []):
     self.name = name
     self.logger = self._getLogger(self.name)
@@ -97,14 +96,6 @@ class IBroker(ABC):
         if col in result.columns:
           result[col] = pd.to_numeric(result[col], errors='coerce')
     return result
-
-  def _getLogger(self, config_name: str) -> Logger:
-    with open(self.LOG_CONFIG, "r") as file:
-        config: dict = yaml.safe_load(file)
-        config['handlers']['timed_file']['filename'] = config_name + '.log'
-        logging.config.dictConfig(config)
-        logger = logging.getLogger(__name__)
-        return logger
 
   def _on_end(self, message):
     if os.path.exists(self.run_file_name):

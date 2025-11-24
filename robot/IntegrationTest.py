@@ -5,6 +5,7 @@ import datetime as dt
 from datetime import timedelta
 import pytz
 import unittest
+from ByBit import ByBit
 
 budapest_tz = pytz.timezone('Europe/Budapest')
 
@@ -14,6 +15,15 @@ start_loc = MTime(dt.datetime.now(), budapest_tz)
 class Test(unittest.TestCase):
     budapest_tz = pytz.timezone('Europe/Budapest')
 
+    def testByBit(self):
+        broker = ByBit(budapest_tz, 10)
+        self.end_loc = MTime(dt.datetime.strptime("2024-06-10 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
+        self.start_loc = MTime(dt.datetime.strptime("2024-06-05 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
+        mrange = MRange(self.start_loc, self.end_loc, 5, 10)
+        broker.request_data(mrange)
+
+
+    @unittest.skip("skipping")
     def testYFinanceRequest(self):
         broker = YahooFinance()
         self.end_loc = MTime(dt.datetime.strptime("2024-06-10 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
@@ -21,7 +31,7 @@ class Test(unittest.TestCase):
         mrange = MRange(self.start_loc, self.end_loc, 60*24, 10)
         broker.request_data(mrange)
 
-    @unittest.skip("demonstrating skipping")
+    @unittest.skip("skipping")
     def test1DayRange(self):
         self.end_loc = MTime(dt.datetime.strptime("2025-02-17 14:00:00.000000 +0100", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
         self.start_loc = MTime(end_loc.dt - timedelta(days=1), budapest_tz)
@@ -48,7 +58,7 @@ class Test(unittest.TestCase):
         mrange = MRange(self.start_loc, self.end_loc, 24*60 + 1, 20)
         self.assertEqual(mrange.len_pages, 0)
 
-    @unittest.skip("demonstrating skipping")
+    @unittest.skip("skipping")
     def test1HourRange(self):
         self.end_loc = MTime(dt.datetime.strptime("2025-02-17 14:00:00.000000 +0100", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
         self.start_loc = MTime(self.end_loc.dt - timedelta(hours=1), budapest_tz)
