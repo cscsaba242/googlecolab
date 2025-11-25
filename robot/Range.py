@@ -16,7 +16,7 @@ class Range(MLogger):
   def __init__(self, name = "MRange"):
     self.logger = self._getLogger(name)
       
-  def rolling_pages(self, start, end, interval, max_per_request):
+  def _gen_pages(self, start, end, interval, max_per_request):
     # start must be less then end
     diff = end - start
     if diff < 0:
@@ -44,7 +44,7 @@ class Range(MLogger):
     self.logger.debug(f"interval: {interval=} - {interval / (60*1000)} min, {max_per_request=}")
     self.logger.debug(f"start: {MTime(start).s}, end: {MTime(end).s}")
     self.pages = []
-    self._gen_pages = self.rolling_pages(start, end, interval, max_per_request)
+    self._gen_pages = self._gen_pages(start, end, interval, max_per_request)
     pages = list(self._gen_pages)
     pages_count = len(pages)
     i = 0
