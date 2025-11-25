@@ -12,4 +12,6 @@ https://query1.finance.yahoo.com/v8/finance/chart/{TICKER}?period1={start_timest
 # TODO
 - resorting pages 
 
+5 day * 24 120
+
 

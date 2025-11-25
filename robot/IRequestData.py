@@ -52,49 +52,49 @@ class IRequestData(ABC, MLogger):
     pass
 
   # PUBLIC METHODS
-  def run(self, range: MRange):
-    i = 0
-    step = 1
-    max = 65
-    try:
-      while os.path.exists(self.run_file_name):
-        self.put_progress_text("working " + str(i) + "/" + str(max) + " sec...", i, 2)
-        time.sleep(1)
-        i += step
-        if i == max:
-          self.logger.info("range:" + range.start.s + " - " + range.end.s)
-          df = self._getDataAsDataFrame(range)
-          i = 0
-      self._on_end("OK")
-    except Exception:
-      self._on_end("Exception")
+  # def run(self, range: MRange):
+  #   i = 0
+  #   step = 1
+  #   max = 65
+  #   try:
+  #     while os.path.exists(self.run_file_name):
+  #       self.put_progress_text("working " + str(i) + "/" + str(max) + " sec...", i, 2)
+  #       time.sleep(1)
+  #       i += step
+  #       if i == max:
+  #         self.logger.info("range:" + range.start.s + " - " + range.end.s)
+  #         df = self._getDataAsDataFrame(range)
+  #         i = 0
+  #     self._on_end("OK")
+  #   except Exception:
+  #     self._on_end("Exception")
 
-  # PROTECTED METHODS
-  def _request_data_validator_wrapper(self, mrange: MRange) -> List:
-    result = self.request_data(mrange)
-    if result is None:
-       raise MException("No data returned from broker", self.name)
+  # # PROTECTED METHODS
+  # def _request_data_validator_wrapper(self, mrange: MRange) -> List:
+  #   result = self.request_data(mrange)
+  #   if result is None:
+  #      raise MException("No data returned from broker", self.name)
     
-    result = sorted(result, key=lambda d: d[0])
+  #   result = sorted(result, key=lambda d: d[0])
     
-    if(len(result) != mrange.diff_interval_min):
-        errMsg = f"Request data length error: {len(result)} != {mrange.diff_interval_min}"
-        self.logger.error(errMsg)
-        raise Exception (errMsg)
-    else:
-       self.logger.info(f"Requested data length OK. {len(result)=} == {mrange.diff_interval_min=}")
-    return result
+  #   if(len(result) != mrange.diff_interval_min):
+  #       errMsg = f"Request data length error: {len(result)} != {mrange.diff_interval_min}"
+  #       self.logger.error(errMsg)
+  #       raise Exception (errMsg)
+  #   else:
+  #      self.logger.info(f"Requested data length OK. {len(result)=} == {mrange.diff_interval_min=}")
+  #   return result
 
-  def _getDataAsDataFrame(self, range: MRange) -> List:
-    data = self._request_data_validator_wrapper(range)
-    if data is None:
-      return None
-    result = pd.DataFrame(data, columns=self.COLS)
-    result['timestamp'] = pd.to_datetime(result['timestamp'], unit='ms')
-    for col in ['Open', 'High', 'Low', 'Close']:
-        if col in result.columns:
-          result[col] = pd.to_numeric(result[col], errors='coerce')
-    return result
+  # def _getDataAsDataFrame(self, range: MRange) -> List:
+  #   data = self._request_data_validator_wrapper(range)
+  #   if data is None:
+  #     return None
+  #   result = pd.DataFrame(data, columns=self.COLS)
+  #   result['timestamp'] = pd.to_datetime(result['timestamp'], unit='ms')
+  #   for col in ['Open', 'High', 'Low', 'Close']:
+  #       if col in result.columns:
+  #         result[col] = pd.to_numeric(result[col], errors='coerce')
+  #   return result
 
   def _on_end(self, message):
     if os.path.exists(self.run_file_name):

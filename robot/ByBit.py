@@ -45,8 +45,19 @@ class ByBit(IRequestData):
     if(result_len == 0):
         return_msg = "No data returned from ByBit"
         self.logger.warning(return_msg)
-    if(result_len != mrange.len_pages):
-        return_msg = f"{self.name} :Data length error: {result_len} != {mrange.len_pages}"
+    
+    elif(result[-1][0] != str(mrange.pages[-1][0])):
+        return_msg = f"ByBit: Data end time error: {result[-1][0]} != {mrange.pages[-1][0]}"
+        self.logger.error(return_msg)
+        raise MException(return_msg, self.name)
+
+    elif(result[0][0] != str(mrange.pages[0][1])):
+        return_msg = f"ByBit: Data start time error: {result[0][0]} != {mrange.pages[0][1]}"
+        self.logger.error(return_msg)
+        raise MException(return_msg, self.name) 
+    
+    if(result_len != int(mrange.diff_min / mrange.interval_min * self.max_data_per_request)):
+        return_msg = f"{self.name} :Data array length error: {result_len} != {int(mrange.diff_min / mrange.interval_min * self.max_data_per_request)}"
         self.logger.error(return_msg)
         raise MException(return_msg, self.name)
     return result
