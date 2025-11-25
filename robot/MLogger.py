@@ -10,7 +10,6 @@ class MLogger:
     def __init__(self, name):
         self.name = name
 
-
     def _getLogger(self, config_name: str) -> Logger:
         with open(self.LOG_CONFIG, "r") as file:
             config: dict = yaml.safe_load(file)

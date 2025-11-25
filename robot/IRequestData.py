@@ -36,7 +36,7 @@ class IRequestData(ABC, MLogger):
   MAX_DATA_PER_REQUEST = 1000
   COLS=[]
   URL = None
-  data = None
+  data = None # data description what we need
   run_file_name = None
   
   def __init__(self, name, tz_loc, max_data_per_request = 10, cols = COLS, symbols = []):
@@ -48,7 +48,7 @@ class IRequestData(ABC, MLogger):
     self.run_file_name = f'run_{self.name}.txt'
 
   @abstractmethod
-  def request_data(self, symbol:str, range: MRange) -> List:
+  def request_data(self, range: MRange) -> List:
     pass
 
   # PUBLIC METHODS
@@ -63,17 +63,17 @@ class IRequestData(ABC, MLogger):
         i += step
         if i == max:
           self.logger.info("range:" + range.start.s + " - " + range.end.s)
-          df = self.getDataAsDataFrame(symbol, range)
+          df = self._getDataAsDataFrame(range)
           i = 0
       self._on_end("OK")
     except Exception:
       self._on_end("Exception")
 
   # PROTECTED METHODS
-  def _request_data_validator_wrapper(self, symbol:str, mrange: MRange) -> List:
-    result = self.request_data(symbol, mrange)
+  def _request_data_validator_wrapper(self, mrange: MRange) -> List:
+    result = self.request_data(mrange)
     if result is None:
-       raise MException("No data returned from broker", symbol, self.name)
+       raise MException("No data returned from broker", self.name)
     
     result = sorted(result, key=lambda d: d[0])
     
@@ -85,8 +85,8 @@ class IRequestData(ABC, MLogger):
        self.logger.info(f"Requested data length OK. {len(result)=} == {mrange.diff_interval_min=}")
     return result
 
-  def _getDataAsDataFrame(self, symbol: str, range: MRange) -> List:
-    data = self._request_data_validator_wrapper(symbol, range)
+  def _getDataAsDataFrame(self, range: MRange) -> List:
+    data = self._request_data_validator_wrapper(range)
     if data is None:
       return None
     result = pd.DataFrame(data, columns=self.COLS)

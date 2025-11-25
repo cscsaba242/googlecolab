@@ -1,12 +1,8 @@
 from IRequestData import IRequestData
-from MTime import MTime
 from MRange import MRange
 import requests
 from typing import Tuple, List
-from datetime import datetime
-
-symbols = [{"SYM": "BTCUSD", "INT":"1", "DATA": [], "LAST_TIME": 0}, 
-           {"SYM": "BTCUSD", "INT":"3", "DATA": [], "LAST_TIME": 0}]
+from MException import MException
 
 class ByBit(IRequestData):
   CATEGORY = "linear"
@@ -42,7 +38,15 @@ class ByBit(IRequestData):
           raise Exception (errMsg)
         
         self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
-        result += response[RESP_RES][RESP_DATA_LIST]   
+        result += response[RESP_RES][RESP_DATA_LIST]
+    result_len = len(result)
+    return_msg = ""
+    # TODO must go to IRequestData.py 
+    if(result_len == 0):
+        return_msg = "No data returned from ByBit"
+        self.logger.warning(return_msg)
+    if(result_len != mrange.len_pages):
+        return_msg = f"{self.name} :Data length error: {result_len} != {mrange.len_pages}"
+        self.logger.error(return_msg)
+        raise MException(return_msg, self.name)
     return result
-    
-

@@ -19,9 +19,8 @@ class Test(unittest.TestCase):
         broker = ByBit(budapest_tz, 10)
         self.end_loc = MTime(dt.datetime.strptime("2024-06-10 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
         self.start_loc = MTime(dt.datetime.strptime("2024-06-05 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
-        mrange = MRange(self.start_loc, self.end_loc, 5, 10)
+        mrange = MRange(self.start_loc, self.end_loc, 60, 10)
         broker.request_data(mrange)
-
 
     @unittest.skip("skipping")
     def testYFinanceRequest(self):
