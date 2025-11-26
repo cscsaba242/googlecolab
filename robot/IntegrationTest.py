@@ -17,16 +17,16 @@ class Test(unittest.TestCase):
 
     def testByBit(self):
         broker = ByBit(budapest_tz, 10)
-        self.end_loc = MTime(dt.datetime.strptime("2024-06-10 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
-        self.start_loc = MTime(dt.datetime.strptime("2024-06-05 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
+        self.end_loc = MTime(dt.datetime.strptime("2025-06-10 14:00:00", MTime.DATE_TIME_DISPLAY_LONG_FORMAT))
+        self.start_loc = MTime(dt.datetime.strptime("2025-06-05 14:00:00", MTime.DATE_TIME_DISPLAY_LONG_FORMAT))
         mrange = MRange(self.start_loc, self.end_loc, 60, 10)
         broker.request_data(mrange)
 
     @unittest.skip("skipping")
     def testYFinanceRequest(self):
         broker = YahooFinance()
-        self.end_loc = MTime(dt.datetime.strptime("2024-06-10 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
-        self.start_loc = MTime(dt.datetime.strptime("2024-06-05 14:00:00.000000 +0200", MTime.DATE_TIME_DISPLAY_LONG_FORMAT), budapest_tz)
+        self.end_loc = MTime(dt.datetime.strptime("2024-06-10 14:00:00", MTime.DATE_TIME_DISPLAY_LONG_FORMAT))
+        self.start_loc = MTime(dt.datetime.strptime("2024-06-05 14:00:00", MTime.DATE_TIME_DISPLAY_LONG_FORMAT))
         mrange = MRange(self.start_loc, self.end_loc, 60*24, 10)
         broker.request_data(mrange)
 

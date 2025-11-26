@@ -1,8 +1,11 @@
+import pytz
 from IRequestData import IRequestData
 from MRange import MRange
 import requests
 from typing import Tuple, List
 from MException import MException
+from MTime import MTime
+import datetime as dt
 
 class ByBit(IRequestData):
   CATEGORY = "linear"
@@ -40,6 +43,7 @@ class ByBit(IRequestData):
         self.logger.info(f"ByBit.request_data: {response[RESP_CODE]=}, {response[RESP_MSG]=}")
         result += response[RESP_RES][RESP_DATA_LIST]
     result_len = len(result)
+    test = self._debug_get_time_array(result)
     return_msg = ""
     # TODO must go to IRequestData.py 
     if(result_len == 0):
@@ -61,3 +65,11 @@ class ByBit(IRequestData):
         self.logger.error(return_msg)
         raise MException(return_msg, self.name)
     return result
+  
+    # make a function which converts the result array first column to by s property fo MTime
+  def _debug_get_time_array(self, data_array: List) -> List[MTime]:
+      time_array = []
+      for row in data_array:
+          time_array.append(MTime(dt.datetime.fromtimestamp(int(int(row[0])/1000), pytz.utc)).s)
+      return time_array
+     

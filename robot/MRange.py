@@ -31,7 +31,7 @@ class MRange(Range, MLogger):
   quotient: int
   remainder: int
   max_per_request: int
-  _gen_pages: Optional[Iterator[int]] = None
+  _generated_pages: Optional[Iterator[int]] = None
   pages = []
   len_pages = 0
   logger: MLogger = None
